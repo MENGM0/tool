@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页下载工具</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        .left-panel {
+            width: 100%;
+            max-width: 550px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #1a1a2e;
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        .subtitle { color: #666; margin-bottom: 20px; font-size: 14px; }
+        .form-group { margin-bottom: 16px; }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        input[type="url"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .format-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        .format-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .format-option:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        .format-option input { display: none; }
+        .format-option:has(input:checked) {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        .format-icon { font-size: 24px; margin-bottom: 4px; }
+        .format-name { font-size: 11px; color: #666; font-weight: 500; }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+        button:hover { transform: translateY(-2px); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .message {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .message.hidden { display: none; }
+        .message.error { background: #fde8e8; color: #c0392b; }
+        .message.success { background: #d4edda; color: #27ae60; }
+        .progress-container {
+            margin-top: 16px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            display: none;
+        }
+        .progress-container.show { display: block; }
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .progress-text { font-size: 12px; color: #666; text-align: center; }
+        .info {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 13px;
+        }
+        .info h3 { margin-bottom: 8px; font-size: 14px; }
+        .info ul { list-style: none; margin-bottom: 8px; }
+        .info li { padding: 3px 0; font-size: 12px; opacity: 0.9; }
+        .info p { font-size: 11px; opacity: 0.8; line-height: 1.5; }
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .resource-info {
+            font-size: 11px;
+            color: #999;
+            margin-top: 6px;
+        }
+
+        /* 右侧控制台 */
+        .console-panel {
+            width: 100%;
+            max-width: 500px;
+            height: calc(100vh - 40px);
+            background: #1a1a1a;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .console-header {
+            padding: 12px 16px;
+            background: #2a2a2a;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .console-header .icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.8;
+        }
+        .console-body {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            color: #fff;
+            line-height: 1.6;
+        }
+        .log-entry {
+            padding: 4px 8px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            gap: 8px;
+        }
+        .log-entry:last-child { border-bottom: none; }
+        .log-time {
+            color: #666;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        .log-info { color: #4fc3f7; }
+        .log-success { color: #81c784; }
+        .log-error { color: #e57373; }
+        .log-warning { color: #ffb74d; }
+        .log-process { color: #baa2ff; }
+        .console-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        .console-body::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        .console-body::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+        .console-empty {
+            color: #666;
+            text-align: center;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+        .clear-btn {
+            padding: 6px 12px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-left: auto;
+        }
+        .clear-btn:hover { background: #444; }
+    </style>
+</head>
+<body>
+    <div class="left-panel">
+        <div class="card">
+            <h1>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#667eea" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                网页下载工具
+            </h1>
+            <p class="subtitle">输入网页 URL，选择格式，一键下载</p>
+
+            <form id="downloadForm">
+                <div class="form-group">
+                    <label for="url">网页 URL</label>
+                    <input type="url" id="url" placeholder="https://example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>输出格式</label>
+                    <div class="format-selector">
+                        <label class="format-option">
+                            <input type="radio" name="format" value="html" checked>
+                            <span class="format-icon">📄</span>
+                            <span class="format-name">HTML</span>
+                        </label>
+                        <label class="format-option">
+                            <input type="radio" name="format" value="html+resources">
+                            <span class="format-icon">📦</span>
+                            <span class="format-name">HTML+ 资源</span>
+                        </label>
+                        <label class="format-option">
+                            <input type="radio" name="format" value="md">
+                            <span class="format-icon">📝</span>
+                            <span class="format-name">Markdown</span>
+                        </label>
+                        <label class="format-option">
+                            <input type="radio" name="format" value="png">
+                            <span class="format-icon">🖼️</span>
+                            <span class="format-name">长截图</span>
+                        </label>
+                    </div>
+                    <div class="resource-info" id="resourceInfo"></div>
+                </div>
+
+                <button type="submit" id="downloadBtn">
+                    <span class="btn-text">下载</span>
+                </button>
+            </form>
+
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <p class="progress-text" id="progressText">准备中...</p>
+            </div>
+
+            <div id="message" class="message hidden"></div>
+        </div>
+
+        <div class="info">
+            <h3>支持的格式</h3>
+            <ul>
+                <li><strong>HTML</strong> - 仅下载网页源代码</li>
+                <li><strong>HTML+ 资源</strong> - 下载 HTML 及图片、CSS、JS 等资源 (ZIP 打包)</li>
+                <li><strong>Markdown</strong> - 提取内容为 Markdown 格式</li>
+                <li><strong>长截图</strong> - 保存网页完整截图 (PNG 格式)</li>
+            </ul>
+            <h3 style="margin-top:12px;">推荐</h3>
+            <ul>
+                <li>https://example.com</li>
+                <li>https://zh.moegirl.org.cn</li>
+            </ul>
+            <p style="margin-top:12px;">
+                ⚠️ 百度、谷歌、淘宝等有严格 CORS 限制的网站无法下载
+            </p>
+        </div>
+    </div>
+
+    <div class="console-panel">
+        <div class="console-header">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="4 17 10 11 4 5"/>
+                <line x1="12" y1="19" x2="20" y2="19"/>
+            </svg>
+            <span>下载日志</span>
+            <button class="clear-btn" onclick="clearConsole()">清空</button>
+        </div>
+        <div class="console-body" id="consoleBody">
+            <div class="console-empty">暂无日志，开始下载后将显示进度...</div>
+        </div>
+    </div>
+
+    <!-- 隐藏的截图容器 -->
+    <div id="screenshotContainer" style="position:absolute;left:-9999px;top:-9999px;width:1200px;visibility:hidden;z-index:-1;"></div>
+
+    <script>
+        const form = document.getElementById('downloadForm');
+        const urlInput = document.getElementById('url');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const message = document.getElementById('message');
+        const btnText = downloadBtn.querySelector('.btn-text');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const resourceInfo = document.getElementById('resourceInfo');
+        const consoleBody = document.getElementById('consoleBody');
+        const screenshotContainer = document.getElementById('screenshotContainer');
+
+        // 多个 CORS 代理
+        const CORS_PROXIES = [
+            // allorigins 是最可靠的，优先使用
+            {
+              name: 'allorigins',
+              url: (target) => `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`,
+              parse: (data) => data.contents,
+              type: 'json'
+            },
+            // allorigins raw 直接返回内容，不需要 JSON 解析
+            {
+              name: 'allorigins-raw',
+              url: (target) => `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`,
+              parse: (data) => data,
+              type: 'raw'
+            },
+        ];
+
+        // 日志系统
+        let logCount = 0;
+        function log(msg, type = 'info') {
+            logCount++;
+            const now = new Date();
+            const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+
+            // 移除空提示
+            const emptyMsg = consoleBody.querySelector('.console-empty');
+            if (emptyMsg) emptyMsg.remove();
+
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <span class="log-time">[${time}]</span>
+                <span class="log-${type}">${escapeHtml(msg)}</span>
+            `;
+            consoleBody.appendChild(entry);
+            consoleBody.scrollTop = consoleBody.scrollHeight;
+        }
+
+        function clearConsole() {
+            consoleBody.innerHTML = '<div class="console-empty">暂无日志，开始下载后将显示进度...</div>';
+            logCount = 0;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 格式选项变化时显示提示
+        document.querySelectorAll('input[name="format"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.value === 'html+resources') {
+                    resourceInfo.textContent = '📦 将下载 HTML 及所有资源文件，打包为 ZIP 格式';
+                } else if (e.target.value === 'png') {
+                    resourceInfo.textContent = '🖼️ 将截取网页完整长图，可能需要较长时间';
+                } else {
+                    resourceInfo.textContent = '';
+                }
+            });
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = urlInput.value.trim();
+            const format = document.querySelector('input[name="format"]:checked').value;
+
+            if (!url || !url.startsWith('http')) {
+                showMessage('请输入有效的 URL', 'error');
+                log('URL 格式无效', 'error');
+                return;
+            }
+
+            setLoading(true);
+            showProgress(true);
+            clearConsole();
+
+            log(`开始下载：${url}`, 'info');
+            log(`输出格式：${format}`, 'info');
+
+            try {
+                log('正在获取网页内容...', 'process');
+                updateProgress(10, '获取网页内容...');
+
+                let html;
+
+                // 特殊处理维基百科
+                if (url.includes('wikipedia.org')) {
+                    log('检测到维基百科，使用 API 获取', 'process');
+                    html = await fetchWikipedia(url);
+                } else {
+                    html = await fetchWithProxies(url);
+                }
+
+                if (!html) {
+                    throw new Error('所有代理都无法访问，该网站可能限制了跨域访问');
+                }
+
+                log(`获取成功，内容大小：${(html.length / 1024).toFixed(2)} KB`, 'success');
+                updateProgress(30, '处理内容中...');
+
+                if (format === 'html+resources') {
+                    await downloadWithResources(url, html);
+                } else if (format === 'png') {
+                    await downloadScreenshot(url, html);
+                } else if (format === 'md') {
+                    log('正在转换为 Markdown...', 'process');
+                    const content = htmlToMarkdown(html);
+                    const filename = generateFilename(url, 'md');
+                    downloadFile(content, filename, 'text/markdown');
+                    log(`Markdown 文件已生成：${filename}`, 'success');
+                    showMessage(`下载成功：${filename}`, 'success');
+                } else {
+                    const filename = generateFilename(url, 'html');
+                    downloadFile(html, filename, 'text/html');
+                    log(`HTML 文件已生成：${filename}`, 'success');
+                    showMessage(`下载成功：${filename}`, 'success');
+                }
+
+                updateProgress(100, '完成!');
+                log('下载完成!', 'success');
+            } catch (error) {
+                log(`下载失败：${error.message}`, 'error');
+                showMessage(`下载失败：${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                setLoading(false);
+                setTimeout(() => showProgress(false), 1500);
+            }
+        });
+
+        // 下载带资源的完整网页
+        async function downloadWithResources(baseUrl, html) {
+            log('开始解析资源链接...', 'process');
+            updateProgress(40, '解析资源链接...');
+
+            const resources = extractResources(html, baseUrl);
+            const zip = new JSZip();
+            const resourceFolder = zip.folder('resources');
+
+            const totalResources = resources.images.length + resources.css.length + resources.js.length;
+            log(`发现资源：图片 ${resources.images.length} 个，CSS ${resources.css.length} 个，JS ${resources.js.length} 个，共 ${totalResources} 个`, 'info');
+            updateProgress(50, `发现 ${totalResources} 个资源文件`);
+
+            if (totalResources === 0) {
+                log('警告：未找到任何外部资源，可能该网页所有资源都是内联的', 'warning');
+            }
+
+            // 修改 HTML 中的资源引用
+            let modifiedHtml = html;
+            let successCount = 0;
+
+            // 处理图片
+            for (let i = 0; i < resources.images.length; i++) {
+                const img = resources.images[i];
+                log(`下载图片 [${i + 1}/${resources.images.length}]: ${truncateUrl(img.url, 50)}`, 'process');
+                updateProgress(50 + (i / Math.max(resources.images.length, 1)) * 15, `下载图片 ${i + 1}/${resources.images.length}`);
+                try {
+                    const imgData = await fetchResource(img.url);
+                    if (imgData) {
+                        const ext = getImageExtension(img.url);
+                        const safeName = `img_${String(i).padStart(3, '0')}.${ext}`;
+                        resourceFolder.file(safeName, imgData, { base64: true });
+                        // 使用正则替换所有出现的位置
+                        const escapedUrl = img.url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        modifiedHtml = modifiedHtml.replace(new RegExp(escapedUrl, 'g'), `resources/${safeName}`);
+                        successCount++;
+                        log(`图片下载成功：${safeName}`, 'success');
+                    } else {
+                        log(`图片下载失败（空响应）: ${truncateUrl(img.url, 40)}`, 'warning');
+                    }
+                } catch (e) {
+                    log(`图片下载失败：${e.message}`, 'error');
+                }
+            }
+
+            // 处理 CSS
+            for (let i = 0; i < resources.css.length; i++) {
+                const css = resources.css[i];
+                log(`下载样式 [${i + 1}/${resources.css.length}]: ${truncateUrl(css.url, 50)}`, 'process');
+                updateProgress(65 + (i / Math.max(resources.css.length, 1)) * 10, `下载样式 ${i + 1}/${resources.css.length}`);
+                try {
+                    const cssData = await fetchResource(css.url);
+                    if (cssData) {
+                        const safeName = `style_${String(i).padStart(3, '0')}.css`;
+                        resourceFolder.file(safeName, cssData);
+                        const escapedUrl = css.url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        modifiedHtml = modifiedHtml.replace(new RegExp(escapedUrl, 'g'), `resources/${safeName}`);
+                        successCount++;
+                        log(`样式下载成功：${safeName}`, 'success');
+                    }
+                } catch (e) {
+                    log(`样式下载失败：${e.message}`, 'error');
+                }
+            }
+
+            // 处理 JS
+            for (let i = 0; i < resources.js.length; i++) {
+                const js = resources.js[i];
+                log(`下载脚本 [${i + 1}/${resources.js.length}]: ${truncateUrl(js.url, 50)}`, 'process');
+                updateProgress(75 + (i / Math.max(resources.js.length, 1)) * 10, `下载脚本 ${i + 1}/${resources.js.length}`);
+                try {
+                    const jsData = await fetchResource(js.url);
+                    if (jsData) {
+                        const safeName = `script_${String(i).padStart(3, '0')}.js`;
+                        resourceFolder.file(safeName, jsData);
+                        const escapedUrl = js.url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        modifiedHtml = modifiedHtml.replace(new RegExp(escapedUrl, 'g'), `resources/${safeName}`);
+                        successCount++;
+                        log(`脚本下载成功：${safeName}`, 'success');
+                    }
+                } catch (e) {
+                    log(`脚本下载失败：${e.message}`, 'error');
+                }
+            }
+
+            // 添加主 HTML 文件
+            zip.file('index.html', modifiedHtml);
+            log('HTML 文件已更新资源引用', 'info');
+
+            updateProgress(90, '打包文件中...');
+            log('正在生成 ZIP 文件...', 'process');
+
+            // 生成 ZIP
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const filename = generateFilename(baseUrl, 'zip');
+
+            updateProgress(95, '开始下载...');
+            log(`ZIP 文件已生成，开始下载：${filename}`, 'success');
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            log(`下载完成：${filename} (成功下载 ${successCount}/${totalResources} 个资源)`, 'success');
+            showMessage(`下载成功：${filename} (包含 ${successCount} 个资源文件)`, 'success');
+        }
+
+        // 提取 HTML 中的资源链接
+        function extractResources(html, baseUrl) {
+            const resources = { images: [], css: [], js: [] };
+
+            // 提取图片 - 支持多种属性
+            const imgPatterns = [
+                /<img[^>]+src="([^"]+)"/gi,
+                /<img[^>]+src='([^']+)'/gi,
+                /<img[^>]+data-src="([^"]+)"/gi,
+            ];
+            for (const pattern of imgPatterns) {
+                let match;
+                while ((match = pattern.exec(html)) !== null) {
+                    const src = match[1];
+                    if (src && !src.startsWith('data:') && !src.startsWith('#') && !src.startsWith('javascript:')) {
+                        resources.images.push({ url: resolveUrl(src, baseUrl) });
+                    }
+                }
+            }
+
+            // 提取 CSS - 支持多种格式
+            const cssPatterns = [
+                /<link[^>]+href="([^"]+\.css[^"]*)"[^>]*rel=["']stylesheet["'][^>]*>/gi,
+                /<link[^>]+rel=["']stylesheet["'][^>]+href="([^"]+\.css[^"]*)"[^>]*>/gi,
+                /<link[^>]+href="([^"]+)"[^>]*rel=["']stylesheet["'][^>]*>/gi,
+                /<link[^>]+rel=["']stylesheet["'][^>]*href="([^"]+)"[^>]*>/gi,
+            ];
+            for (const pattern of cssPatterns) {
+                let match;
+                while ((match = pattern.exec(html)) !== null) {
+                    const href = match[1];
+                    if (href && !href.startsWith('data:')) {
+                        resources.css.push({ url: resolveUrl(href, baseUrl) });
+                    }
+                }
+            }
+
+            // 提取 JS
+            const jsPatterns = [
+                /<script[^>]+src="([^"]+)"/gi,
+                /<script[^>]+src='([^']+)'/gi,
+            ];
+            for (const pattern of jsPatterns) {
+                let match;
+                while ((match = pattern.exec(html)) !== null) {
+                    const src = match[1];
+                    if (src && !src.startsWith('data:')) {
+                        resources.js.push({ url: resolveUrl(src, baseUrl) });
+                    }
+                }
+            }
+
+            // 去重
+            resources.images = resources.images.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
+            resources.css = resources.css.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
+            resources.js = resources.js.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
+
+            return resources;
+        }
+
+        // 获取图片扩展名
+        function getImageExtension(url) {
+            const urlLower = url.toLowerCase();
+            if (urlLower.includes('.jpg') || urlLower.includes('.jpeg')) return 'jpg';
+            if (urlLower.includes('.png')) return 'png';
+            if (urlLower.includes('.gif')) return 'gif';
+            if (urlLower.includes('.svg')) return 'svg';
+            if (urlLower.includes('.webp')) return 'webp';
+            if (urlLower.includes('.ico')) return 'ico';
+            // 默认从内容类型判断，这里简单处理为 jpg
+            return 'jpg';
+        }
+
+        // 解析相对 URL
+        function resolveUrl(url, baseUrl) {
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                return url;
+            }
+            if (url.startsWith('//')) {
+                return 'https:' + url;
+            }
+            try {
+                return new URL(url, baseUrl).href;
+            } catch {
+                return url;
+            }
+        }
+
+        // 截断 URL 显示
+        function truncateUrl(url, maxLen) {
+            if (url.length <= maxLen) return url;
+            return url.substring(0, maxLen - 3) + '...';
+        }
+
+        // 获取资源（通过代理）
+        async function fetchResource(url) {
+            try {
+                // 处理 // 开头的 URL
+                if (url.startsWith('//')) {
+                    url = 'https:' + url;
+                }
+
+                // 跳过 data URI 和 javascript URI
+                if (url.startsWith('data:') || url.startsWith('javascript:')) {
+                    return null;
+                }
+
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+                const response = await fetch(proxyUrl, {
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const contentType = response.headers.get('Content-Type') || '';
+                if (contentType.includes('text') || contentType.includes('json') || contentType.includes('xml')) {
+                    return await response.text();
+                } else {
+                    const blob = await response.blob();
+                    return await blobToBase64(blob);
+                }
+            } catch (e) {
+                log(`资源获取失败 (${url.substring(0, 40)}): ${e.message}`, 'warning');
+                return null;
+            }
+        }
+
+        // 下载长截图
+        async function downloadScreenshot(url, html) {
+            log('创建页面渲染容器...', 'process');
+            updateProgress(40, '创建渲染容器...');
+
+            // 清理之前的容器
+            screenshotContainer.innerHTML = '';
+            screenshotContainer.style.width = '1200px';
+
+            try {
+                log('加载 html2canvas 库...', 'process');
+                const html2canvas = await loadHtml2Canvas();
+
+                log('渲染页面内容...', 'process');
+                updateProgress(50, '渲染页面...');
+
+                // 创建可见但离屏的容器来渲染
+                screenshotContainer.style.visibility = 'visible';
+                screenshotContainer.style.zIndex = '10000';
+                screenshotContainer.style.position = 'fixed';
+                screenshotContainer.style.left = '0';
+                screenshotContainer.style.top = '0';
+                document.body.appendChild(screenshotContainer);
+
+                // 将 HTML 写入容器 - 需要创建一个完整的文档结构
+                const wrapper = document.createElement('div');
+                wrapper.style.width = '1200px';
+                wrapper.style.background = '#fff';
+                // 确保有足够的样式让内容正确渲染
+                wrapper.innerHTML = `
+                    <style>
+                        body { margin: 0; padding: 20px; font-family: sans-serif; }
+                        img { max-width: 100%; height: auto; }
+                    </style>
+                    ${html}
+                `;
+                screenshotContainer.appendChild(wrapper);
+
+                // 处理资源加载
+                const imgs = wrapper.querySelectorAll('img');
+                log(`等待 ${imgs.length} 张图片加载...`, 'process');
+
+                // 等待图片加载
+                await Promise.allSettled(Array.from(imgs).map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = resolve; // 即使失败也继续
+                        setTimeout(resolve, 5000); // 超时继续
+                    });
+                }));
+
+                // 等待 DOM 稳定
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                updateProgress(60, '生成截图...');
+                log('正在生成截图...', 'process');
+
+                // 使用 html2canvas 截图
+                const canvas = await html2canvas(screenshotContainer, {
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false,
+                    backgroundColor: '#ffffff',
+                    scale: 1,
+                    windowWidth: 1200,
+                    windowHeight: screenshotContainer.scrollHeight,
+                    ignoreElements: (el) => el.classList.contains('no-capture')
+                });
+
+                // 隐藏容器
+                screenshotContainer.style.visibility = 'hidden';
+                screenshotContainer.style.zIndex = '-1';
+
+                updateProgress(85, '生成图片...');
+                log('截图完成，生成 PNG 文件...', 'process');
+
+                // 转换为图片并下载
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+                const filename = generateFilename(url, 'png');
+
+                updateProgress(95, '开始下载...');
+                log(`PNG 文件已生成：${filename} (${(blob.size / 1024).toFixed(1)} KB)`, 'success');
+
+                const imgUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = imgUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(imgUrl);
+
+                log('截图下载完成!', 'success');
+                showMessage(`截图成功：${filename}`, 'success');
+            } catch (error) {
+                // 隐藏容器
+                screenshotContainer.style.visibility = 'hidden';
+                screenshotContainer.style.zIndex = '-1';
+                log(`截图错误：${error.message || '未知错误'}`, 'error');
+                throw error;
+            }
+        }
+
+        // 动态加载 html2canvas
+        async function loadHtml2Canvas() {
+            if (window.html2canvas) {
+                log('html2canvas 已加载', 'info');
+                return window.html2canvas;
+            }
+
+            log('正在加载 html2canvas 库...', 'process');
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                script.onload = () => {
+                    log('html2canvas 加载完成', 'success');
+                    resolve(window.html2canvas);
+                };
+                script.onerror = () => {
+                    log('html2canvas 加载失败，请检查网络连接', 'error');
+                    reject(new Error('无法加载 html2canvas 库'));
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        // 特殊处理维基百科
+        async function fetchWikipedia(url) {
+            try {
+                const urlObj = new URL(url);
+                const pathParts = urlObj.pathname.split('/').filter(p => p);
+                const lang = urlObj.hostname.replace('.wikipedia.org', '').split('.').pop() || 'zh';
+                const title = decodeURIComponent(pathParts.slice(1).join('/'));
+
+                const apiUrl = `https://${lang}.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&format=json&prop=text&origin=*`;
+
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(`维基 API 错误：${data.error.info}`);
+                }
+
+                log('使用维基百科 API 获取内容成功', 'success');
+                return data.parse.text['*'];
+            } catch (error) {
+                log('维基百科 API 失败，尝试普通代理', 'warning');
+                return await fetchWithProxies(url);
+            }
+        }
+
+        // 尝试多个代理
+        async function fetchWithProxies(url) {
+            let lastError = null;
+
+            for (const proxy of CORS_PROXIES) {
+                try {
+                    log(`尝试代理：${proxy.name}`, 'process');
+
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+                    const response = await fetch(proxy.url(url), {
+                        signal: controller.signal,
+                        headers: { 'Accept': proxy.type === 'raw' ? 'text/html,*/*' : 'application/json,*/*' }
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                    let content;
+                    if (proxy.type === 'raw') {
+                        content = await response.text();
+                    } else {
+                        const data = await response.json();
+                        content = proxy.parse(data);
+                    }
+
+                    if (content && content.length > 0) {
+                        log(`代理 ${proxy.name} 获取成功 (${(content.length / 1024).toFixed(1)} KB)`, 'success');
+                        return content;
+                    } else {
+                        throw new Error('返回内容为空');
+                    }
+                } catch (error) {
+                    lastError = error;
+                    if (error.name === 'AbortError') {
+                        log(`代理 ${proxy.name} 超时 (15 秒)`, 'warning');
+                    } else {
+                        log(`代理 ${proxy.name} 失败：${error.message}`, 'warning');
+                    }
+                }
+            }
+
+            throw lastError || new Error('无法获取内容');
+        }
+
+        function setLoading(loading) {
+            downloadBtn.disabled = loading;
+            btnText.innerHTML = loading ? '<span class="loading"></span> 处理中...' : '下载';
+        }
+
+        function showProgress(show) {
+            progressContainer.classList.toggle('show', show);
+        }
+
+        function updateProgress(percent, text) {
+            progressFill.style.width = `${percent}%`;
+            progressText.textContent = text;
+        }
+
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = `message ${type}`;
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function generateFilename(url, ext) {
+            const parsed = new URL(url);
+            let name = parsed.hostname.replace('www.', '');
+            if (parsed.pathname !== '/') {
+                const parts = parsed.pathname.split('/');
+                name = parts.filter(p => p).pop() || name;
+            }
+            // 移除已有的文件扩展名
+            name = name.replace(/\.(html|htm|php|aspx|asp|jsp|jspx)$/i, '');
+            // 清理非法字符
+            name = name.replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50);
+            if (!name) name = 'webpage';
+            return `${name}.${ext}`;
+        }
+
+        function htmlToMarkdown(html) {
+            // 移除 script 和 style
+            html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+            html = html.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+
+            let md = html
+                .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n')
+                .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
+                .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n')
+                .replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n\n')
+                .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
+                .replace(/<a[^>]*href="(.*?)".*?>(.*?)<\/a>/gi, '[$2]($1)')
+                .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+                .replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
+                .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
+                .replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
+                .replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n')
+                .replace(/<ul[^>]*>(.*?)<\/ul>/gi, '$1\n')
+                .replace(/<ol[^>]*>(.*?)<\/ol>/gi, '$1\n')
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<hr\s*\/?>/gi, '\n---\n')
+                .replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gi, '> $1\n')
+                .replace(/<[^>]+>/g, '')
+                .replace(/&nbsp;/g, ' ')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&amp;/g, '&')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+            return md;
+        }
+
+        function blobToBase64(blob) {
+            return new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.readAsDataURL(blob);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -288,7 +288,7 @@
                     <div class="upload-icon">📁</div>
                     <div class="upload-text">
                         点击或拖拽文件到此处上传<br>
-                        <span>支持图片、ZIP、PDF等任意文件格式<br>也可 Ctrl+V 直接粘贴</span>
+                        <span>支持图片、ZIP、PDF等任意文件格式</span>
                     </div>
                     <input type="file" id="fileInput" style="display: none;">
                 </div>

@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown 转 PDF</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: #f6f8fa;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 上传区域 */
+        .upload-zone {
+            background: #fff;
+            border: 2px dashed #d0d7de;
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-zone:hover {
+            border-color: #0969da;
+            background: #f0f7ff;
+        }
+
+        .upload-zone.dragover {
+            border-color: #0969da;
+            background: #e8f4ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #0969da;
+            margin-bottom: 16px;
+        }
+
+        .upload-text {
+            color: #57606a;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            color: #8c959f;
+            font-size: 14px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* 文件列表 */
+        .file-list {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-list.active {
+            display: block;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f6f8fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .file-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .file-name {
+            color: #24292f;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .file-status {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-left: 12px;
+        }
+
+        .status-ready {
+            background: #dafbe1;
+            color: #1a7f37;
+        }
+
+        .status-processing {
+            background: #fff8c5;
+            color: #9a6700;
+        }
+
+        .file-remove {
+            color: #cf222e;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .file-remove:hover {
+            background: #ffebe9;
+        }
+
+        /* 按钮组 */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .settings-toggle {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: #0969da;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #0860ca;
+        }
+
+        .btn-primary:disabled {
+            background: #8c959f;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f6f8fa;
+            color: #24292f;
+            border: 1px solid #d0d7de;
+        }
+
+        .btn-secondary:hover {
+            background: #f3f4f6;
+        }
+
+        /* 预览区域 */
+        .preview-container {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            overflow: hidden;
+            display: none;
+        }
+
+        .preview-container.active {
+            display: block;
+        }
+
+        .preview-header {
+            background: #f6f8fa;
+            padding: 16px 24px;
+            border-bottom: 1px solid #d0d7de;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-title {
+            color: #24292f;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .preview-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .preview-tab {
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            background: transparent;
+            border: 1px solid transparent;
+            color: #57606a;
+        }
+
+        .preview-tab.active {
+            background: #fff;
+            border-color: #d0d7de;
+            color: #24292f;
+        }
+
+        .preview-content {
+            padding: 40px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .preview-content.hide {
+            display: none;
+        }
+
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #24292f;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* 设置面板 */
+        .settings-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        .settings-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #24292f;
+        }
+
+        .settings-items {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-item label {
+            font-size: 13px;
+            color: #57606a;
+        }
+
+        .setting-item select,
+        .setting-item input {
+            padding: 6px 10px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #fff;
+            color: #24292f;
+            cursor: pointer;
+        }
+
+        .setting-item select:hover,
+        .setting-item input:hover {
+            border-color: #0969da;
+        }
+
+        .setting-item input[type="number"] {
+            width: 60px;
+        }
+
+        .btn-settings {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        /* Markdown 样式 - GitHub 风格 */
+        .markdown-body {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #24292f;
+        }
+
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3,
+        .markdown-body h4,
+        .markdown-body h5,
+        .markdown-body h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+            color: #24292f;
+        }
+
+        .markdown-body h1 { font-size: 2em; border-bottom: 1px solid #d0d7de; padding-bottom: 0.3em; }
+        .markdown-body h2 { font-size: 1.5em; border-bottom: 1px solid #d0d7de; padding-bottom: 0.3em; }
+        .markdown-body h3 { font-size: 1.25em; }
+        .markdown-body h4 { font-size: 1em; }
+        .markdown-body h5 { font-size: 0.875em; }
+        .markdown-body h6 { font-size: 0.85em; color: #57606a; }
+
+        .markdown-body p {
+            margin-bottom: 16px;
+        }
+
+        .markdown-body a {
+            color: #0969da;
+            text-decoration: none;
+        }
+
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+
+        .markdown-body code {
+            background: rgba(175,184,193,0.2);
+            padding: 0.2em 0.4em;
+            border-radius: 6px;
+            font-size: 85%;
+            font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+        }
+
+        .markdown-body pre {
+            background: #f6f8fa;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        .markdown-body img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 16px auto;
+            border-radius: 6px;
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+            padding-left: 2em;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body li {
+            margin-bottom: 4px;
+        }
+
+        .markdown-body blockquote {
+            border-left: 4px solid #d0d7de;
+            padding-left: 16px;
+            color: #57606a;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body th,
+        .markdown-body td {
+            border: 1px solid #d0d7de;
+            padding: 10px 16px;
+            text-align: left;
+        }
+
+        .markdown-body th {
+            background: #f6f8fa;
+            font-weight: 600;
+        }
+
+        .markdown-body hr {
+            border: none;
+            border-top: 1px solid #d0d7de;
+            margin: 24px 0;
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .upload-zone,
+            .file-list,
+            .button-group,
+            .settings-toggle,
+            .settings-bar,
+            .preview-header,
+            .preview-tabs {
+                display: none !important;
+            }
+
+            .preview-container,
+            .preview-content {
+                display: block !important;
+                max-height: none !important;
+                overflow: visible !important;
+                box-shadow: none !important;
+            }
+
+            .preview-content.hide {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 上传区域 -->
+        <div class="upload-zone" id="uploadZone">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">拖拽 Markdown 文件到此处</div>
+            <div class="upload-hint">或点击选择文件，支持批量选择</div>
+            <input type="file" id="fileInput" accept=".md,.markdown" multiple>
+        </div>
+
+        <!-- 文件列表 -->
+        <div class="file-list" id="fileList"></div>
+
+        <!-- 设置栏 -->
+        <div class="settings-bar" id="settingsBar" style="display: none;">
+            <span class="settings-title">PDF 设置</span>
+            <div class="settings-items">
+                <div class="setting-item">
+                    <label>纸张</label>
+                    <select id="paperSize">
+                        <option value="A4">A4</option>
+                        <option value="A3">A3</option>
+                        <option value="Letter">Letter</option>
+                        <option value="Legal">Legal</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>方向</label>
+                    <select id="orientation">
+                        <option value="portrait">纵向</option>
+                        <option value="landscape">横向</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>上边距</label>
+                    <input type="number" id="marginTop" value="10" min="0" max="50" step="1">
+                    <span>mm</span>
+                </div>
+                <div class="setting-item">
+                    <label>下边距</label>
+                    <input type="number" id="marginBottom" value="10" min="0" max="50" step="1">
+                    <span>mm</span>
+                </div>
+                <div class="setting-item">
+                    <label>左边距</label>
+                    <input type="number" id="marginLeft" value="10" min="0" max="50" step="1">
+                    <span>mm</span>
+                </div>
+                <div class="setting-item">
+                    <label>右边距</label>
+                    <input type="number" id="marginRight" value="10" min="0" max="50" step="1">
+                    <span>mm</span>
+                </div>
+                <div class="setting-item">
+                    <label>字体</label>
+                    <input type="number" id="fontSize" value="14" min="10" max="24" step="1">
+                    <span>px</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 按钮组 -->
+        <div class="button-group">
+            <button class="btn btn-primary" id="generateBtn" disabled>生成 PDF</button>
+            <button class="btn btn-secondary" id="clearBtn">清空列表</button>
+        </div>
+
+        <!-- Toast 提示 -->
+        <div class="toast" id="toast"></div>
+
+        <!-- 预览区域 -->
+        <div class="preview-container" id="previewContainer">
+            <div class="preview-header">
+                <span class="preview-title" id="previewTitle">预览</span>
+                <div class="preview-tabs">
+                    <button class="preview-tab active" data-view="preview">预览</button>
+                    <button class="preview-tab" data-view="print">打印视图</button>
+                </div>
+            </div>
+            <div class="preview-content" id="previewContent">
+                <div class="markdown-body" id="markdownBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 状态管理
+        const state = {
+            files: [],
+            currentIndex: 0,
+            printMode: false
+        };
+
+        // DOM 元素
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const generateBtn = document.getElementById('generateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewTitle = document.getElementById('previewTitle');
+        const markdownBody = document.getElementById('markdownBody');
+        const previewTabs = document.querySelectorAll('.preview-tab');
+        const settingsBar = document.getElementById('settingsBar');
+
+        // 设置相关 DOM
+        const paperSizeSelect = document.getElementById('paperSize');
+        const orientationSelect = document.getElementById('orientation');
+        const marginTopInput = document.getElementById('marginTop');
+        const marginBottomInput = document.getElementById('marginBottom');
+        const marginLeftInput = document.getElementById('marginLeft');
+        const marginRightInput = document.getElementById('marginRight');
+        const fontSizeInput = document.getElementById('fontSize');
+
+        // 初始化 marked
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            }
+        });
+
+        // 上传区域事件
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+            fileInput.value = '';
+        });
+
+        // 处理文件
+        async function handleFiles(fileList) {
+            const mdFiles = Array.from(fileList).filter(f =>
+                f.name.endsWith('.md') || f.name.endsWith('.markdown')
+            );
+
+            for (const file of mdFiles) {
+                const exists = state.files.find(f => f.name === file.name);
+                if (exists) continue;
+
+                state.files.push({
+                    file: file,
+                    name: file.name,
+                    content: null,
+                    html: null,
+                    status: 'pending'
+                });
+            }
+
+            updateFileList();
+
+            if (state.files.length > 0 && !state.files[0].content) {
+                await loadFile(0);
+            }
+        }
+
+        // 加载文件
+        async function loadFile(index) {
+            if (index >= state.files.length) return;
+
+            const fileItem = state.files[index];
+            fileItem.status = 'processing';
+            updateFileList();
+
+            try {
+                const content = await readFile(fileItem.file);
+                fileItem.content = content;
+                fileItem.html = await parseMarkdown(content, fileItem.file.path || '');
+                fileItem.status = 'ready';
+
+                state.currentIndex = index;
+                showPreview(fileItem);
+                updateFileList();
+                updateButtons();
+            } catch (error) {
+                console.error('加载文件失败:', error);
+                fileItem.status = 'error';
+                updateFileList();
+            }
+        }
+
+        // 读取文件
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        // 解析 Markdown（处理图片）
+        async function parseMarkdown(content, basePath) {
+            const html = marked.parse(content);
+
+            // 处理本地图片
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            const images = tempDiv.querySelectorAll('img');
+            for (const img of images) {
+                const src = img.getAttribute('src');
+                if (src && !src.startsWith('http') && !src.startsWith('data:')) {
+                    try {
+                        // 尝试从原始文件目录加载图片
+                        const imgPath = basePath ?
+                            basePath.substring(0, basePath.lastIndexOf('/')) + '/' + src : src;
+                        const base64 = await imageToBase64(imgPath);
+                        img.setAttribute('src', base64);
+                    } catch (e) {
+                        console.warn('无法加载图片:', src);
+                    }
+                }
+            }
+
+            return tempDiv.innerHTML;
+        }
+
+        // 图片转 Base64
+        async function imageToBase64(path) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                img.onerror = reject;
+                img.src = path;
+            });
+        }
+
+        // 更新文件列表
+        function updateFileList() {
+            if (state.files.length === 0) {
+                fileList.classList.remove('active');
+                return;
+            }
+
+            fileList.classList.add('active');
+            fileList.innerHTML = state.files.map((item, index) => `
+                <div class="file-item">
+                    <span class="file-name">${item.name}</span>
+                    <span class="file-status status-${item.status}">
+                        ${getStatusText(item.status)}
+                    </span>
+                    ${index === state.currentIndex ? '' : `
+                        <span class="file-remove" onclick="removeFile(${index})">移除</span>
+                    `}
+                </div>
+            `).join('');
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                pending: '等待中',
+                processing: '处理中',
+                ready: '就绪',
+                error: '失败'
+            };
+            return texts[status] || status;
+        }
+
+        // 移除文件
+        function removeFile(index) {
+            state.files.splice(index, 1);
+            if (state.files.length === 0) {
+                previewContainer.classList.remove('active');
+                generateBtn.disabled = true;
+            } else if (index <= state.currentIndex) {
+                state.currentIndex = Math.max(0, state.currentIndex - 1);
+                loadFile(state.currentIndex);
+            }
+            updateFileList();
+            updateButtons();
+        }
+
+        // 更新按钮状态
+        function updateButtons() {
+            generateBtn.disabled = state.files.length === 0;
+        }
+
+        // 显示预览
+        function showPreview(fileItem) {
+            previewContainer.classList.add('active');
+            settingsBar.style.display = 'flex';
+            previewTitle.textContent = `预览：${fileItem.name}`;
+            markdownBody.innerHTML = fileItem.html;
+            applySettings();
+
+            // 重新初始化代码高亮
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        }
+
+        // 切换预览模式
+        previewTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                previewTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                if (tab.dataset.view === 'print') {
+                    markdownBody.classList.add('hide');
+                } else {
+                    markdownBody.classList.remove('hide');
+                }
+            });
+        });
+
+        // 生成 PDF
+        generateBtn.addEventListener('click', async () => {
+            if (state.files.length === 0) return;
+
+            for (let i = 0; i < state.files.length; i++) {
+                await loadFile(i);
+                const fileItem = state.files[i];
+
+                if (fileItem.html) {
+                    // 切换到当前文件预览
+                    state.currentIndex = i;
+                    showPreview(fileItem);
+                    previewTitle.textContent = `正在打印：${fileItem.name} (${i + 1}/${state.files.length})`;
+
+                    // 触发打印
+                    await new Promise(resolve => {
+                        window.print();
+                        setTimeout(resolve, 500);
+                    });
+                }
+            }
+
+            previewTitle.textContent = `预览：${state.files[state.currentIndex]?.name || ''}`;
+            showToast('所有文件已处理完成！');
+        });
+
+        // 清空列表
+        clearBtn.addEventListener('click', () => {
+            state.files = [];
+            state.currentIndex = 0;
+            fileList.classList.remove('active');
+            previewContainer.classList.remove('active');
+            settingsBar.style.display = 'none';
+            markdownBody.innerHTML = '';
+            updateButtons();
+        });
+
+        // 设置变更监听
+        [paperSizeSelect, orientationSelect, marginTopInput, marginBottomInput, marginLeftInput, marginRightInput, fontSizeInput]
+            .forEach(el => el.addEventListener('change', applySettings));
+
+        // 应用设置
+        function applySettings() {
+            const fontSize = fontSizeInput.value;
+            markdownBody.style.fontSize = fontSize + 'px';
+
+            // 更新打印样式
+            updatePrintStyles();
+        }
+
+        // 更新打印样式
+        function updatePrintStyles() {
+            const paperSize = paperSizeSelect.value;
+            const orientation = orientationSelect.value;
+            const marginTop = marginTopInput.value;
+            const marginBottom = marginBottomInput.value;
+            const marginLeft = marginLeftInput.value;
+            const marginRight = marginRightInput.value;
+
+            let styleEl = document.getElementById('print-style');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'print-style';
+                document.head.appendChild(styleEl);
+            }
+
+            styleEl.textContent = `
+                @media print {
+                    @page {
+                        size: ${paperSize} ${orientation};
+                        margin: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm;
+                    }
+                }
+            `;
+        }
+
+        // 阻止浏览器默认拖拽行为
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => e.preventDefault());
+
+        // Toast 提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

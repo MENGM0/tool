@@ -1,0 +1,9 @@
+{"type":"server-started","port":51170,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:51170","screen_dir":"/Users/yumi/workspace/code/tool_img2base64/.superpowers/brainstorm/64476-1775565687/content","state_dir":"/Users/yumi/workspace/code/tool_img2base64/.superpowers/brainstorm/64476-1775565687/state"}
+{"type":"screen-added","file":"/Users/yumi/workspace/code/tool_img2base64/.superpowers/brainstorm/64476-1775565687/content/layout.html"}
+{"source":"user-event","type":"click","text":"A\n    \n      单页双区布局\n      左右分栏：左侧编码区（上传图片→Base64），右侧解码区（Base64→图片预览）","choice":"a","id":null,"timestamp":1775567382762}
+{"source":"user-event","type":"click","text":"A\n    \n      单页双区布局\n      左右分栏：左侧编码区（上传图片→Base64），右侧解码区（Base64→图片预览）","choice":"a","id":null,"timestamp":1775567387463}
+{"source":"user-event","type":"click","text":"A\n    \n      单页双区布局\n      左右分栏：左侧编码区（上传图片→Base64），右侧解码区（Base64→图片预览）","choice":"a","id":null,"timestamp":1775567387571}
+{"source":"user-event","type":"click","text":"A\n    \n      单页双区布局\n      左右分栏：左侧编码区（上传图片→Base64），右侧解码区（Base64→图片预览）","choice":"a","id":null,"timestamp":1775567399441}
+{"type":"screen-added","file":"/Users/yumi/workspace/code/tool_img2base64/.superpowers/brainstorm/64476-1775565687/content/ui-preview.html"}
+{"type":"screen-added","file":"/Users/yumi/workspace/code/tool_img2base64/.superpowers/brainstorm/64476-1775565687/content/template-ref.html"}
+{"type":"server-stopped","reason":"idle timeout"}

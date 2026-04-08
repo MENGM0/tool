@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64编码转换工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .panel {
+            background: #fafbfc;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e1e4e8;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e1e4e8;
+        }
+
+        .upload-area {
+            border: 2px dashed #d1d5da;
+            border-radius: 8px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+        }
+
+        .upload-area:hover {
+            border-color: #4a90e2;
+            background: #f0f7ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #4a90e2;
+            background: #e8f4ff;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            color: #4a90e2;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #586069;
+            font-size: 14px;
+        }
+
+        .upload-text span {
+            color: #4a90e2;
+        }
+
+        .preview-area {
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .preview-info {
+            font-size: 12px;
+            color: #586069;
+            margin-top: 8px;
+        }
+
+        .textarea-wrapper {
+            margin-bottom: 16px;
+        }
+
+        .textarea-label {
+            font-size: 13px;
+            color: #586069;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            border: 1px solid #d1d5da;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 12px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            resize: vertical;
+            background: #fff;
+            color: #333;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            border: 1px solid #d1d5da;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 14px;
+            background: #fff;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: #4a90e2;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #3a7bd5;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            border-color: #d1d5da;
+            color: #586069;
+        }
+
+        .btn-secondary:hover {
+            background: #f6f8fa;
+            border-color: #c5c9cd;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #22863a;
+        }
+
+        .status-message {
+            font-size: 12px;
+            color: #28a745;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .status-message.error {
+            color: #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Base64 编码转换工具</h1>
+            <p>支持图片、ZIP等文件与 Base64 格式之间的双向转换</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 编码区 -->
+            <div class="panel">
+                <div class="panel-title">文件 → Base64</div>
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">
+                        点击或拖拽文件到此处上传<br>
+                        <span>支持图片、ZIP、PDF等任意文件格式</span>
+                    </div>
+                    <input type="file" id="fileInput" style="display: none;">
+                </div>
+
+                <div class="preview-area">
+                    <img class="preview-image" id="previewImage" alt="预览">
+                    <div class="preview-file" id="previewFile" style="display: none; padding: 20px; background: #f0f7ff; border-radius: 8px;">
+                        <div style="font-size: 40px;">📄</div>
+                        <div class="preview-info" id="previewInfo"></div>
+                    </div>
+                </div>
+
+                <div class="textarea-wrapper">
+                    <label class="textarea-label">Base64 编码结果 (Data URI 格式)</label>
+                    <textarea id="encodeOutput" readonly placeholder="上传图片后自动生成..."></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="copyEncode">复制结果</button>
+                    <button class="btn btn-secondary" id="downloadEncode">下载文本</button>
+                    <button class="btn btn-secondary" id="clearEncode">清除</button>
+                </div>
+                <div class="status-message" id="encodeStatus"></div>
+            </div>
+
+            <!-- 解码区 -->
+            <div class="panel">
+                <div class="panel-title">Base64 → 文件</div>
+
+                <div class="textarea-wrapper">
+                    <label class="textarea-label">输入 Base64 或 Data URI</label>
+                    <textarea id="decodeInput" placeholder="粘贴 Base64 编码或 Data URI 格式内容..."></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="decodeBtn">解码</button>
+                    <button class="btn btn-secondary" id="pasteDecode">粘贴</button>
+                    <button class="btn btn-secondary" id="clearDecode">清除</button>
+                </div>
+
+                <div class="preview-area" style="margin-top: 16px;">
+                    <img class="preview-image" id="decodePreview" alt="解码结果">
+                    <div class="preview-file" id="decodeFilePreview" style="display: none; padding: 20px; background: #f0f7ff; border-radius: 8px;">
+                        <div style="font-size: 40px;">📄</div>
+                        <div class="preview-info" id="decodeInfo"></div>
+                    </div>
+                </div>
+
+                <div class="textarea-wrapper" style="margin-top: 16px;">
+                    <label class="textarea-label">下载文件名</label>
+                    <input type="text" id="downloadFileName" placeholder="自定义下载文件名" value="decoded_file.bin">
+                </div>
+
+                <div class="btn-group" style="margin-top: 16px;">
+                    <button class="btn btn-success" id="downloadFile" disabled>下载文件</button>
+                </div>
+                <div class="status-message" id="decodeStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 编码功能
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewImage = document.getElementById('previewImage');
+        const previewFile = document.getElementById('previewFile');
+        const previewInfo = document.getElementById('previewInfo');
+        const encodeOutput = document.getElementById('encodeOutput');
+        const copyEncode = document.getElementById('copyEncode');
+        const downloadEncode = document.getElementById('downloadEncode');
+        const clearEncode = document.getElementById('clearEncode');
+        const encodeStatus = document.getElementById('encodeStatus');
+
+        // 解码功能
+        const decodeInput = document.getElementById('decodeInput');
+        const decodeBtn = document.getElementById('decodeBtn');
+        const pasteDecode = document.getElementById('pasteDecode');
+        const clearDecode = document.getElementById('clearDecode');
+        const decodePreview = document.getElementById('decodePreview');
+        const decodeFilePreview = document.getElementById('decodeFilePreview');
+        const decodeInfo = document.getElementById('decodeInfo');
+        const downloadFileName = document.getElementById('downloadFileName');
+        const downloadFile = document.getElementById('downloadFile');
+        const decodeStatus = document.getElementById('decodeStatus');
+
+        let currentFile = null;
+        let currentFileBlob = null; // 存储原始文件Blob用于下载
+        let decodedBlob = null; // 存储解码后的Blob
+        let decodedMimeType = '';
+
+        // 判断是否为图片文件
+        function isImageFile(mimeType) {
+            return mimeType.startsWith('image/');
+        }
+
+        // 根据MIME类型获取文件扩展名
+        function getExtensionFromMime(mimeType) {
+            const mimeMap = {
+                'image/png': 'png',
+                'image/jpeg': 'jpg',
+                'image/jpg': 'jpg',
+                'image/gif': 'gif',
+                'image/webp': 'webp',
+                'image/svg+xml': 'svg',
+                'image/bmp': 'bmp',
+                'image/tiff': 'tiff',
+                'application/zip': 'zip',
+                'application/x-zip-compressed': 'zip',
+                'application/x-compress': 'zip',
+                'application/x-compressed': 'zip',
+                'application/pdf': 'pdf',
+                'application/json': 'json',
+                'text/plain': 'txt',
+                'text/html': 'html',
+                'text/css': 'css',
+                'application/javascript': 'js',
+                'text/javascript': 'js',
+                'application/x-apple-diskimage': 'dmg',
+                'application/octet-stream': 'bin',
+                'application/x-msdownload': 'exe',
+                'application/x-dosexec': 'exe',
+                'application/vnd.android.package-archive': 'apk',
+                'application/x-tar': 'tar',
+                'application/x-gzip': 'gz',
+                'application/gzip': 'gz',
+                'application/x-rar-compressed': 'rar',
+                'application/vnd.rar': 'rar',
+                'application/x-7z-compressed': '7z',
+                'audio/mpeg': 'mp3',
+                'audio/wav': 'wav',
+                'video/mp4': 'mp4',
+                'video/webm': 'webm',
+                'video/quicktime': 'mov',
+                'application/vnd.ms-excel': 'xls',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+                'application/msword': 'doc',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+                'application/vnd.ms-powerpoint': 'ppt',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx'
+            };
+            return mimeMap[mimeType] || 'bin';
+        }
+
+        // 上传区域点击事件
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // 文件选择事件
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) processFile(file);
+        });
+
+        // 拖拽事件
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) processFile(file);
+        });
+
+        // 处理文件
+        function processFile(file) {
+            currentFile = file;
+            currentFileBlob = file; // 存储原始Blob用于下载
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const dataUri = e.target.result;
+
+                // 根据文件类型显示预览
+                if (isImageFile(file.type)) {
+                    // 图片文件显示图片预览
+                    previewImage.src = dataUri;
+                    previewImage.style.display = 'block';
+                    previewFile.style.display = 'none';
+                } else {
+                    // 其他文件显示文件图标
+                    previewImage.style.display = 'none';
+                    previewFile.style.display = 'block';
+                    previewFile.querySelector('.preview-info').textContent = `${file.name} (${formatSize(file.size)})`;
+                }
+                previewInfo.textContent = `${file.name} (${formatSize(file.size)})`;
+
+                // 输出Base64
+                encodeOutput.value = dataUri;
+                showStatus(encodeStatus, '编码成功！');
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // 格式化文件大小
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        // 复制功能
+        copyEncode.addEventListener('click', () => {
+            if (encodeOutput.value) {
+                navigator.clipboard.writeText(encodeOutput.value).then(() => {
+                    showStatus(encodeStatus, '已复制到剪贴板！');
+                });
+            }
+        });
+
+        // 下载文本
+        downloadEncode.addEventListener('click', () => {
+            if (encodeOutput.value && currentFile) {
+                const blob = new Blob([encodeOutput.value], { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = currentFile.name.split('.')[0] + '_base64.txt';
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }
+        });
+
+        // 清除编码区 - 优化大文本清除性能
+        clearEncode.addEventListener('click', () => {
+            previewImage.style.display = 'none';
+            previewImage.src = '';
+            previewFile.style.display = 'none';
+            previewInfo.textContent = '';
+            fileInput.value = '';
+            currentFile = null;
+            currentFileBlob = null;
+            encodeStatus.style.display = 'none';
+            // 大文本优化：先隐藏再清除
+            encodeOutput.style.display = 'none';
+            encodeOutput.value = '';
+            encodeOutput.style.display = 'block';
+        });
+
+        // 粘贴功能 - 直接读取剪贴板内容
+        pasteDecode.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    decodeInput.value = text;
+                    showStatus(decodeStatus, '已粘贴！');
+                } else {
+                    showStatus(decodeStatus, '剪贴板无文本内容', true);
+                }
+            } catch (err) {
+                decodeInput.focus();
+                showStatus(decodeStatus, '请按 Ctrl+V / Command+V 粘贴', false);
+            }
+        });
+
+        // 解码功能 - 使用Blob处理大文件
+        decodeBtn.addEventListener('click', () => {
+            const input = decodeInput.value.trim();
+            if (!input) {
+                showStatus(decodeStatus, '请输入Base64内容', true);
+                return;
+            }
+
+            try {
+                let mimeType = 'application/octet-stream';
+                let base64Data = '';
+
+                if (input.startsWith('data:')) {
+                    // Data URI格式，解析MIME类型和Base64数据
+                    const mimeMatch = input.match(/^data:([^;,]+)/);
+                    mimeType = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+
+                    // 提取Base64部分
+                    const base64Match = input.match(/^data:[^;,]+;base64,(.+)$/);
+                    base64Data = base64Match ? base64Match[1] : '';
+                } else {
+                    // 纯Base64
+                    mimeType = 'application/octet-stream';
+                    base64Data = input;
+                }
+
+                if (!base64Data) {
+                    showStatus(decodeStatus, '无法提取Base64数据', true);
+                    return;
+                }
+
+                // 将Base64转换为Blob
+                decodedBlob = base64ToBlob(base64Data, mimeType);
+                decodedMimeType = mimeType;
+                const ext = getExtensionFromMime(mimeType);
+
+                // 更新文件名输入框
+                downloadFileName.value = 'decoded_file.' + ext;
+
+                // 创建Blob URL用于预览（仅图片）
+                const blobUrl = URL.createObjectURL(decodedBlob);
+
+                // 根据类型显示预览
+                if (isImageFile(mimeType)) {
+                    decodePreview.src = blobUrl;
+                    decodePreview.style.display = 'block';
+                    decodeFilePreview.style.display = 'none';
+                    decodeInfo.textContent = '';
+                } else {
+                    decodePreview.style.display = 'none';
+                    decodeFilePreview.style.display = 'block';
+                    decodeInfo.textContent = `${downloadFileName.value} (${mimeType}, ${formatSize(decodedBlob.size)})`;
+                }
+
+                downloadFile.disabled = false;
+                showStatus(decodeStatus, '解码成功！');
+            } catch (err) {
+                console.error('解码错误:', err);
+                showStatus(decodeStatus, '解码失败：' + err.message, true);
+            }
+        });
+
+        // Base64转Blob函数
+        function base64ToBlob(base64, mimeType) {
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], { type: mimeType });
+        }
+
+        // 清除解码区 - 优化大文本清除性能
+        clearDecode.addEventListener('click', () => {
+            decodePreview.style.display = 'none';
+            decodePreview.src = '';
+            decodeFilePreview.style.display = 'none';
+            decodeInfo.textContent = '';
+            downloadFileName.value = 'decoded_file.bin';
+            downloadFile.disabled = true;
+            decodedBlob = null;
+            decodedMimeType = '';
+            decodeStatus.style.display = 'none';
+            // 大文本优化：先隐藏再清除
+            decodeInput.style.display = 'none';
+            decodeInput.value = '';
+            decodeInput.style.display = 'block';
+        });
+
+        // 下载解码后的文件 - 使用Blob URL
+        downloadFile.addEventListener('click', () => {
+            if (decodedBlob) {
+                const blobUrl = URL.createObjectURL(decodedBlob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = downloadFileName.value || 'decoded_file.bin';
+                link.click();
+                URL.revokeObjectURL(blobUrl);
+            }
+        });
+
+        // 显示状态消息
+        function showStatus(element, message, isError = false) {
+            element.textContent = message;
+            element.style.display = 'block';
+            if (isError) {
+                element.classList.add('error');
+            } else {
+                element.classList.remove('error');
+            }
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

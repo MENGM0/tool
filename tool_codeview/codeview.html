@@ -53,9 +53,9 @@
 
     /* ===== 工具栏样式 ===== */
     #toolbar {
-      background-color: var(--bg-secondary);
+      background-color: #2d2d2d;
       border-bottom: 1px solid var(--border-color);
-      padding: 10px 16px;
+      padding: 12px 20px;
       display: flex;
       align-items: center;
       gap: 16px;
@@ -78,9 +78,9 @@
 
     /* ===== 下拉选择框样式 ===== */
     select {
-      background-color: var(--bg-tertiary);
+      background-color: #1e1e1e;
       color: var(--text-primary);
-      border: 1px solid var(--border-color);
+      border: 1px solid #404040;
       border-radius: 4px;
       padding: 6px 12px;
       font-size: 13px;
@@ -149,25 +149,25 @@
     }
 
     /* ===== 开关样式 (深色/浅色主题切换) ===== */
-    .switch-container {
+    .toggle-switch {
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .switch {
+    .toggle-track {
       position: relative;
       width: 48px;
       height: 24px;
     }
 
-    .switch input {
+    .toggle-track input {
       opacity: 0;
       width: 0;
       height: 0;
     }
 
-    .slider {
+    .toggle-slider {
       position: absolute;
       cursor: pointer;
       top: 0;
@@ -180,7 +180,7 @@
       border: 1px solid var(--border-color);
     }
 
-    .slider:before {
+    .toggle-slider:before {
       position: absolute;
       content: "";
       height: 18px;
@@ -192,12 +192,12 @@
       border-radius: 50%;
     }
 
-    .switch input:checked + .slider {
+    .toggle-track input:checked + .toggle-slider {
       background-color: var(--accent-color);
       border-color: var(--accent-color);
     }
 
-    .switch input:checked + .slider:before {
+    .toggle-track input:checked + .toggle-slider:before {
       transform: translateX(24px);
     }
 
@@ -209,9 +209,9 @@
 
     /* ===== 按钮样式 ===== */
     .btn {
-      background-color: var(--bg-tertiary);
+      background-color: #1e1e1e;
       color: var(--text-primary);
-      border: 1px solid var(--border-color);
+      border: 1px solid #404040;
       border-radius: 4px;
       padding: 6px 14px;
       font-size: 13px;
@@ -261,7 +261,13 @@
     #editor-container {
       flex: 1;
       width: 100%;
+      height: calc(100vh - 60px);
       min-height: 500px;
+    }
+
+    /* ===== 隐藏元素 ===== */
+    .hidden {
+      display: none;
     }
 
     /* ===== 响应式设计 ===== */
@@ -349,7 +355,7 @@
     <div class="toolbar-group">
       <span class="toolbar-label">字号:</span>
       <div class="range-container">
-        <input type="range" id="font-size-range" min="10" max="32" value="14" title="调整字号">
+        <input type="range" id="font-size-range" min="12" max="24" value="14" title="调整字号">
         <span class="range-value" id="font-size-value">14px</span>
       </div>
     </div>
@@ -360,10 +366,12 @@
     <div class="toolbar-group">
       <span class="toolbar-label">主题:</span>
       <select id="theme-select" title="选择编辑器主题">
-        <option value="vs-dark">深色 (VS Dark)</option>
-        <option value="light">浅色 (VS Light)</option>
-        <option value="hc-black">高对比度深色</option>
-        <option value="hc-light">高对比度浅色</option>
+        <option value="vs-dark">vs-dark</option>
+        <option value="vs">vs</option>
+        <option value="monokai">monokai</option>
+        <option value="solarized-dark">solarized-dark</option>
+        <option value="one-dark-pro">one-dark-pro</option>
+        <option value="dracula">dracula</option>
       </select>
     </div>
 
@@ -372,10 +380,10 @@
     <!-- 深色/浅色页面主题切换 -->
     <div class="toolbar-group">
       <span class="toolbar-label">页面:</span>
-      <div class="switch-container">
-        <label class="switch">
+      <div class="toggle-switch">
+        <label class="toggle-track">
           <input type="checkbox" id="page-theme-switch" checked>
-          <span class="slider"></span>
+          <span class="toggle-slider"></span>
         </label>
         <span class="switch-label" id="page-theme-label">深色</span>
       </div>
@@ -390,6 +398,7 @@
         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
       </svg>
       <span>复制代码</span>
+      <span id="copy-success" class="hidden">已复制!</span>
     </button>
   </div>
 

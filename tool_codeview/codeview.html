@@ -487,7 +487,20 @@
         }
       });
 
-      // 后续任务将添加更多事件...
+      // 字体选择下拉
+      const fontSelect = document.getElementById('font-select');
+      fontSelect.addEventListener('change', function () {
+        editor.updateOptions({ fontFamily: this.value });
+      });
+
+      // 字号滑动条
+      const fontSizeInput = document.getElementById('font-size-range');
+      const fontSizeValue = document.getElementById('font-size-value');
+      fontSizeInput.addEventListener('input', function () {
+        const size = parseInt(this.value);
+        editor.updateOptions({ fontSize: size });
+        fontSizeValue.textContent = size + 'px';
+      });
     }
 
     // ===== 页面主题切换功能 =====
@@ -502,14 +515,6 @@
         document.documentElement.setAttribute('data-theme', 'light');
         pageThemeLabel.textContent = '浅色';
       }
-    });
-
-    // ===== 字号滑动条实时更新显示 =====
-    const fontSizeRange = document.getElementById('font-size-range');
-    const fontSizeValue = document.getElementById('font-size-value');
-
-    fontSizeRange.addEventListener('input', function() {
-      fontSizeValue.textContent = this.value + 'px';
     });
 
     // ===== 复制按钮点击事件 =====

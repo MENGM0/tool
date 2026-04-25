@@ -427,10 +427,67 @@
       // monokai, solarized-dark, one-dark-pro, dracula
     }
 
-    // ===== 事件绑定初始化（后续任务实现） =====
+    // ===== 启发式语言检测 =====
+    function detectLanguage(code) {
+      if (code.length < 20) return 'plaintext';
+
+      const patterns = {
+        javascript: [/function\s*\(/, /const\s+\w+/, /let\s+\w+/, /=>\s*{/, /require\(/, /export\s+/],
+        typescript: [/interface\s+\w+/, /type\s+\w+\s*=/, /:\s*\w+\s*[;=]/, /<\w+>/, /enum\s+\w+/],
+        python: [/def\s+\w+\s*\(/, /import\s+\w+/, /from\s+\w+\s+import/, /if\s+__name__/, /print\s*\(/],
+        java: [/public\s+class/, /private\s+\w+/, /import\s+java\./, /System\.out\.print/, /throws\s+/],
+        cpp: [/#include\s*</, /class\s+\w+\s*{/, /namespace\s+\w+/, /cout\s*<</, /int\s+main\s*\(/],
+        go: [/func\s+\w+\s*\(/, /package\s+\w+/, /import\s+"fmt"/, /:=/, /go\s+\w+\(/],
+        rust: [/fn\s+\w+\s*\(/, /let\s+mut/, /impl\s+\w+/, /pub\s+fn/, /use\s+\w+::/],
+        html: [/<html[\s>]/, /<head[\s>]/, /<body[\s>]/, /<div[\s>]/, /<script[\s>]/],
+        css: [/^\s*[\w.#][\w-]*\s*{/, /@media/, /margin:\s*\d+/, /color:\s*#/, /background:/],
+        json: [/^\s*{[\s\n]*"/, /^\s*\[[\s\n]*"/, /"\w+":\s*"/, /"\w+":\s*\d+/],
+        markdown: [/^#+\s+/, /^\*\s+\w/, /^-\s+\w/, /\[.*\]\(.*\)/, /^>\s+/],
+        sql: [/SELECT\s+/i, /FROM\s+/i, /INSERT\s+INTO/i, /CREATE\s+TABLE/i, /WHERE\s+/i],
+        yaml: [/^\w+:\s+/, /^\s+-\s+\w+:/, /^\s+\w+:\s+/, /---\s*$/],
+        shell: [/^#!/, /\$\w+/, /echo\s+/, /if\s*\[\s*\]/, /for\s+\w+\s+in/],
+        php: [/<\?php/, /\$\w+/, /function\s+\w+\s*\(/, /echo\s+/, /require\s+/],
+        csharp: [/namespace\s+\w+/, /class\s+\w+/, /using\s+/, /public\s+\w+/, /Console\.Write/],
+      };
+
+      let detected = 'plaintext';
+      let maxScore = 0;
+
+      for (const [lang, regexes] of Object.entries(patterns)) {
+        const score = regexes.reduce((count, regex) =>
+          count + (regex.test(code) ? 1 : 0), 0);
+        if (score > maxScore) {
+          maxScore = score;
+          detected = lang;
+        }
+      }
+
+      return maxScore >= 2 ? detected : 'plaintext';
+    }
+
+    // ===== 事件绑定初始化 =====
     function initEvents(editor) {
-      // TODO: 在后续任务中添加事件绑定
-      // 语言切换、字体切换、字号调整、主题切换、复制代码等
+      const model = editor.getModel();
+
+      // 语言选择下拉
+      const languageSelect = document.getElementById('language-select');
+      languageSelect.addEventListener('change', function () {
+        monaco.editor.setModelLanguage(model, this.value);
+      });
+
+      // 内容变化时自动检测语言
+      model.onDidChangeContent(() => {
+        const code = model.getValue();
+        if (code.length > 50 && languageSelect.value === 'plaintext') {
+          const detected = detectLanguage(code);
+          if (detected !== 'plaintext') {
+            monaco.editor.setModelLanguage(model, detected);
+            languageSelect.value = detected;
+          }
+        }
+      });
+
+      // 后续任务将添加更多事件...
     }
 
     // ===== 页面主题切换功能 =====

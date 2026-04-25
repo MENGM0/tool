@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>代码查看器</title>
+  <!-- Monaco Editor CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js"></script>
+  <style>
+    /* ===== 基础样式重置 ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ===== 深色主题变量 ===== */
+    :root {
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #252526;
+      --bg-tertiary: #3c3c3c;
+      --text-primary: #cccccc;
+      --text-secondary: #9d9d9d;
+      --border-color: #3c3c3c;
+      --accent-color: #007acc;
+      --accent-hover: #1177bb;
+      --success-color: #4ec9b0;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ===== 浅色主题变量 ===== */
+    [data-theme="light"] {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f3f3f3;
+      --bg-tertiary: #e8e8e8;
+      --text-primary: #333333;
+      --text-secondary: #666666;
+      --border-color: #d4d4d4;
+      --accent-color: #0066b8;
+      --accent-hover: #005a9e;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ===== Body样式 ===== */
+    body {
+      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== 工具栏样式 ===== */
+    #toolbar {
+      background-color: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+      z-index: 100;
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toolbar-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      user-select: none;
+    }
+
+    /* ===== 下拉选择框样式 ===== */
+    select {
+      background-color: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s, background-color 0.2s;
+      min-width: 100px;
+    }
+
+    select:hover {
+      border-color: var(--accent-color);
+    }
+
+    select:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 1px var(--accent-color);
+    }
+
+    /* ===== 滑动条样式 (字号) ===== */
+    .range-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100px;
+      height: 6px;
+      background: var(--bg-tertiary);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: var(--accent-hover);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+
+    .range-value {
+      font-size: 13px;
+      color: var(--text-secondary);
+      min-width: 30px;
+      text-align: center;
+    }
+
+    /* ===== 开关样式 (深色/浅色主题切换) ===== */
+    .switch-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .switch {
+      position: relative;
+      width: 48px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-tertiary);
+      transition: 0.3s;
+      border-radius: 24px;
+      border: 1px solid var(--border-color);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 2px;
+      bottom: 2px;
+      background-color: var(--text-primary);
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    .switch input:checked + .slider {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+    }
+
+    .switch input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    .switch-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      min-width: 50px;
+    }
+
+    /* ===== 按钮样式 ===== */
+    .btn {
+      background-color: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+      color: #ffffff;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* 复制按钮特殊样式 */
+    .btn-copy {
+      margin-left: auto;
+    }
+
+    .btn-copy.copied {
+      background-color: var(--success-color);
+      border-color: var(--success-color);
+      color: #ffffff;
+    }
+
+    /* ===== 分隔线 ===== */
+    .divider {
+      width: 1px;
+      height: 24px;
+      background-color: var(--border-color);
+      margin: 0 4px;
+    }
+
+    /* ===== 编辑器容器样式 ===== */
+    #editor-container {
+      flex: 1;
+      width: 100%;
+      min-height: 500px;
+    }
+
+    /* ===== 响应式设计 ===== */
+    @media (max-width: 768px) {
+      #toolbar {
+        padding: 8px 12px;
+        gap: 12px;
+      }
+
+      .toolbar-group {
+        flex-wrap: wrap;
+      }
+
+      select {
+        min-width: 80px;
+        padding: 5px 8px;
+      }
+
+      input[type="range"] {
+        width: 80px;
+      }
+
+      .btn-copy {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 工具栏 -->
+  <div id="toolbar">
+    <!-- 语言选择 -->
+    <div class="toolbar-group">
+      <span class="toolbar-label">语言:</span>
+      <select id="language-select" title="选择编程语言">
+        <option value="javascript">JavaScript</option>
+        <option value="typescript">TypeScript</option>
+        <option value="python">Python</option>
+        <option value="java">Java</option>
+        <option value="csharp">C#</option>
+        <option value="cpp">C++</option>
+        <option value="c">C</option>
+        <option value="go">Go</option>
+        <option value="rust">Rust</option>
+        <option value="php">PHP</option>
+        <option value="ruby">Ruby</option>
+        <option value="swift">Swift</option>
+        <option value="kotlin">Kotlin</option>
+        <option value="scala">Scala</option>
+        <option value="html">HTML</option>
+        <option value="css">CSS</option>
+        <option value="scss">SCSS</option>
+        <option value="less">Less</option>
+        <option value="json">JSON</option>
+        <option value="xml">XML</option>
+        <option value="yaml">YAML</option>
+        <option value="markdown">Markdown</option>
+        <option value="sql">SQL</option>
+        <option value="shell">Shell</option>
+        <option value="powershell">PowerShell</option>
+        <option value="plaintext">纯文本</option>
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 字体选择 -->
+    <div class="toolbar-group">
+      <span class="toolbar-label">字体:</span>
+      <select id="font-select" title="选择字体">
+        <option value="Consolas">Consolas</option>
+        <option value="'Courier New'">Courier New</option>
+        <option value="Monaco">Monaco</option>
+        <option value="'Source Code Pro'">Source Code Pro</option>
+        <option value="Fira Code">Fira Code</option>
+        <option value="JetBrains Mono">JetBrains Mono</option>
+        <option value="Menlo">Menlo</option>
+        <option value="'Ubuntu Mono'">Ubuntu Mono</option>
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 字号滑动条 -->
+    <div class="toolbar-group">
+      <span class="toolbar-label">字号:</span>
+      <div class="range-container">
+        <input type="range" id="font-size-range" min="10" max="32" value="14" title="调整字号">
+        <span class="range-value" id="font-size-value">14px</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 主题选择 -->
+    <div class="toolbar-group">
+      <span class="toolbar-label">主题:</span>
+      <select id="theme-select" title="选择编辑器主题">
+        <option value="vs-dark">深色 (VS Dark)</option>
+        <option value="light">浅色 (VS Light)</option>
+        <option value="hc-black">高对比度深色</option>
+        <option value="hc-light">高对比度浅色</option>
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 深色/浅色页面主题切换 -->
+    <div class="toolbar-group">
+      <span class="toolbar-label">页面:</span>
+      <div class="switch-container">
+        <label class="switch">
+          <input type="checkbox" id="page-theme-switch" checked>
+          <span class="slider"></span>
+        </label>
+        <span class="switch-label" id="page-theme-label">深色</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 复制按钮 -->
+    <button class="btn btn-copy" id="copy-btn" title="复制代码">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+      <span>复制代码</span>
+    </button>
+  </div>
+
+  <!-- 编辑器容器 -->
+  <div id="editor-container"></div>
+
+  <script>
+    // Monaco Editor 初始化和功能代码将在后续任务中添加
+    // 当前仅保留占位符
+    console.log('代码查看器已加载 - Monaco Editor 将在后续初始化');
+
+    // 页面主题切换功能
+    const pageThemeSwitch = document.getElementById('page-theme-switch');
+    const pageThemeLabel = document.getElementById('page-theme-label');
+
+    pageThemeSwitch.addEventListener('change', function() {
+      if (this.checked) {
+        document.documentElement.removeAttribute('data-theme');
+        pageThemeLabel.textContent = '深色';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        pageThemeLabel.textContent = '浅色';
+      }
+    });
+
+    // 字号滑动条实时更新显示
+    const fontSizeRange = document.getElementById('font-size-range');
+    const fontSizeValue = document.getElementById('font-size-value');
+
+    fontSizeRange.addEventListener('input', function() {
+      fontSizeValue.textContent = this.value + 'px';
+    });
+
+    // 复制按钮点击事件
+    const copyBtn = document.getElementById('copy-btn');
+    copyBtn.addEventListener('click', function() {
+      // 复制功能将在后续任务中完善
+      this.classList.add('copied');
+      this.querySelector('span').textContent = '已复制!';
+      setTimeout(() => {
+        this.classList.remove('copied');
+        this.querySelector('span').textContent = '复制代码';
+      }, 2000);
+    });
+  </script>
+</body>
+</html>

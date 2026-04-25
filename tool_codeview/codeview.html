@@ -414,11 +414,26 @@
   <div id="editor-container"></div>
 
   <script>
-    // Monaco Editor 初始化和功能代码将在后续任务中添加
-    // 当前仅保留占位符
-    console.log('代码查看器已加载 - Monaco Editor 将在后续初始化');
+    // ===== Monaco Editor 加载配置 =====
+    require.config({
+      paths: {
+        'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs'
+      }
+    });
 
-    // 页面主题切换功能
+    // ===== 自定义主题定义（后续任务实现） =====
+    function defineCustomThemes() {
+      // TODO: 在后续任务中添加自定义主题
+      // monokai, solarized-dark, one-dark-pro, dracula
+    }
+
+    // ===== 事件绑定初始化（后续任务实现） =====
+    function initEvents(editor) {
+      // TODO: 在后续任务中添加事件绑定
+      // 语言切换、字体切换、字号调整、主题切换、复制代码等
+    }
+
+    // ===== 页面主题切换功能 =====
     const pageThemeSwitch = document.getElementById('page-theme-switch');
     const pageThemeLabel = document.getElementById('page-theme-label');
 
@@ -432,7 +447,7 @@
       }
     });
 
-    // 字号滑动条实时更新显示
+    // ===== 字号滑动条实时更新显示 =====
     const fontSizeRange = document.getElementById('font-size-range');
     const fontSizeValue = document.getElementById('font-size-value');
 
@@ -440,7 +455,7 @@
       fontSizeValue.textContent = this.value + 'px';
     });
 
-    // 复制按钮点击事件
+    // ===== 复制按钮点击事件 =====
     const copyBtn = document.getElementById('copy-btn');
     copyBtn.addEventListener('click', function() {
       // 复制功能将在后续任务中完善
@@ -450,6 +465,35 @@
         this.classList.remove('copied');
         this.querySelector('span').textContent = '复制代码';
       }, 2000);
+    });
+
+    // ===== Monaco Editor 初始化 =====
+    require(['vs/editor/editor.main'], function () {
+      console.log('Monaco Editor 加载完成');
+
+      // 定义自定义主题
+      defineCustomThemes();
+
+      // 创建编辑器实例
+      const editor = monaco.editor.create(document.getElementById('editor-container'), {
+        value: '// 在此处粘贴代码...\n',
+        language: 'javascript',
+        theme: 'vs-dark',
+        fontSize: 14,
+        fontFamily: 'Consolas',
+        lineNumbers: 'on',
+        folding: true,
+        automaticLayout: true,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        wordWrap: 'on',
+        padding: { top: 16 }
+      });
+
+      console.log('Monaco Editor 实例创建成功');
+
+      // 初始化事件绑定
+      initEvents(editor);
     });
   </script>
 </body>

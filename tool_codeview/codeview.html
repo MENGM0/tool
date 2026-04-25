@@ -608,6 +608,30 @@
         themeSelect.value = theme;
         updateUITheme(isDark);
       });
+
+      // 复制按钮
+      const copyBtn = document.getElementById('copy-btn');
+      const copySuccess = document.getElementById('copy-success');
+      copyBtn.addEventListener('click', function () {
+        const code = editor.getValue();
+        if (code.trim()) {
+          navigator.clipboard.writeText(code).then(() => {
+            copySuccess.classList.remove('hidden');
+            copySuccess.style.color = '#4ec9b0';
+            setTimeout(() => {
+              copySuccess.classList.add('hidden');
+            }, 2000);
+          }).catch(err => {
+            copySuccess.classList.remove('hidden');
+            copySuccess.textContent = '复制失败';
+            copySuccess.style.color = '#f92672';
+            setTimeout(() => {
+              copySuccess.classList.add('hidden');
+              copySuccess.textContent = '已复制!';
+            }, 2000);
+          });
+        }
+      });
     }
 
     // ===== 更新页面主题开关状态 =====
@@ -633,18 +657,6 @@
         document.documentElement.setAttribute('data-theme', 'light');
       }
     }
-
-    // ===== 复制按钮点击事件 =====
-    const copyBtn = document.getElementById('copy-btn');
-    copyBtn.addEventListener('click', function() {
-      // 复制功能将在后续任务中完善
-      this.classList.add('copied');
-      this.querySelector('span').textContent = '已复制!';
-      setTimeout(() => {
-        this.classList.remove('copied');
-        this.querySelector('span').textContent = '复制代码';
-      }, 2000);
-    });
 
     // ===== Monaco Editor 初始化 =====
     require(['vs/editor/editor.main'], function () {

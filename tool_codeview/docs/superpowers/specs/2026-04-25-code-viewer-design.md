@@ -17,7 +17,7 @@ type: project
 | 功能 | 描述 | 实现方式 |
 |------|------|----------|
 | 代码粘贴 | 用户粘贴代码到编辑器 | Monaco Editor 输入区域 |
-| 自动语言识别 | 粘贴后自动检测编程语言 | Monaco Editor 内置语言检测 |
+| 语言选择 | 用户选择或自动检测编程语言 | 语言下拉选择 + 启发式检测（可选） |
 | 语法高亮 | 根据语言显示彩色代码 | Monaco Editor 语法高亮 |
 | 行号显示 | 左侧显示代码行号 | Monaco Editor 内置 |
 | 代码折叠 | 折叠函数、类、代码块 | Monaco Editor 内置折叠功能 |
@@ -50,7 +50,7 @@ Monaco Editor 内置支持 80+ 种语言，主要包括：
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ [语言:JavaScript] [字体▼] [字号:12─●─24] [主题▼] [🌙/☀️] [📋复制] │
+│ [语言▼] [字体▼] [字号:12─●─24] [主题▼] [🌙/☀️] [📋复制]           │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
 │  Monaco Editor 代码区域                                                   │
@@ -63,9 +63,11 @@ Monaco Editor 内置支持 80+ 种语言，主要包括：
 
 ### 工具栏组件详情
 
-**语言显示**
-- 显示当前检测到的语言名称
-- 自动更新，无需手动选择
+**语言选择（下拉）**
+- 默认显示 "自动检测"
+- 支持手动选择：JavaScript, Python, Java, C++, Go, TypeScript, HTML, CSS, JSON, Markdown 等
+- 启发式检测：粘贴代码后，根据关键字特征推测语言并自动切换下拉选项
+- 用户可手动覆盖自动检测结果
 
 **字体选择（下拉）**
 - Consolas（默认）
@@ -140,13 +142,42 @@ const CodeViewer = {
     });
   },
 
-  // 自动检测语言
+  // 启发式语言检测
   detectLanguage() {
     const model = this.editor.getModel();
     const value = model.getValue();
-    if (value.length > 50) {
-      // Monaco 内置语言检测
-      monaco.editor.setModelLanguage(model, detectedLanguage);
+    if (value.length < 20) return;
+
+    // 基于关键字特征的简单检测
+    const patterns = {
+      javascript: [/function\s*\(/, /const\s+\w+/, /let\s+\w+/, /=>\s*{/, /require\(/],
+      python: [/def\s+\w+\s*\(/, /import\s+\w+/, /from\s+\w+\s+import/, /if\s+\w+:\s*$/],
+      java: [/public\s+class/, /private\s+\w+/, /import\s+java\./, /System\.out\.print/],
+      typescript: [/interface\s+\w+/, /type\s+\w+\s*=/, /:\s*\w+\s*;/, /<\w+>/],
+      go: [/func\s+\w+\s*\(/, /package\s+\w+/, /import\s+"fmt"/, /:=/],
+      html: [/<html/, /<div/, /<body/, /<script\s+src=/],
+      css: [/^\s*\w+\s*{/, /@media/, /margin:\s*\d+/, /color:\s*#/],
+      json: [/^\s*{/, /^\s*\[/, /"\w+":\s*"/, /"\w+":\s*\d+/],
+      markdown: [/^#+\s+/, /^\*\s+/, /^-\s+/, /\[.*\]\(.*\)/],
+      sql: [/SELECT\s+/, /FROM\s+/, /INSERT\s+INTO/, /CREATE\s+TABLE/],
+    };
+
+    let detected = 'plaintext';
+    let maxScore = 0;
+
+    for (const [lang, regexes] of Object.entries(patterns)) {
+      const score = regexes.reduce((count, regex) =>
+        count + (regex.test(value) ? 1 : 0), 0);
+      if (score > maxScore) {
+        maxScore = score;
+        detected = lang;
+      }
+    }
+
+    if (detected !== 'plaintext') {
+      monaco.editor.setModelLanguage(model, detected);
+      // 更新下拉选择框
+      document.getElementById('language-select').value = detected;
     }
   },
 
@@ -199,8 +230,8 @@ monaco.editor.defineTheme('monokai', {
 
 1. 用户打开页面，看到空代码区域
 2. 用户粘贴代码到编辑器
-3. Monaco 自动检测语言并应用语法高亮
-4. 工具栏显示当前语言名称
+3. 启发式检测推测语言并应用语法高亮（用户可手动覆盖）
+4. 工具栏语言下拉显示当前语言
 5. 用户可调整字体、字号、主题
 6. 用户可折叠代码块
 7. 用户点击复制按钮复制代码

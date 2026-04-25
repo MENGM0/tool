@@ -26,6 +26,10 @@
       --accent-hover: #1177bb;
       --success-color: #4ec9b0;
       --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      /* Toolbar, select, button 变量 */
+      --toolbar-bg: #2d2d2d;
+      --input-bg: #1e1e1e;
+      --input-border: #404040;
     }
 
     /* ===== 浅色主题变量 ===== */
@@ -39,6 +43,10 @@
       --accent-color: #0066b8;
       --accent-hover: #005a9e;
       --shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      /* Toolbar, select, button 变量 */
+      --toolbar-bg: #f3f3f3;
+      --input-bg: #ffffff;
+      --input-border: #ccc;
     }
 
     /* ===== Body样式 ===== */
@@ -53,7 +61,7 @@
 
     /* ===== 工具栏样式 ===== */
     #toolbar {
-      background-color: #2d2d2d;
+      background-color: var(--toolbar-bg);
       border-bottom: 1px solid var(--border-color);
       padding: 12px 20px;
       display: flex;
@@ -78,9 +86,9 @@
 
     /* ===== 下拉选择框样式 ===== */
     select {
-      background-color: #1e1e1e;
+      background-color: var(--input-bg);
       color: var(--text-primary);
-      border: 1px solid #404040;
+      border: 1px solid var(--input-border);
       border-radius: 4px;
       padding: 6px 12px;
       font-size: 13px;
@@ -209,9 +217,9 @@
 
     /* ===== 按钮样式 ===== */
     .btn {
-      background-color: #1e1e1e;
+      background-color: var(--input-bg);
       color: var(--text-primary);
-      border: 1px solid #404040;
+      border: 1px solid var(--input-border);
       border-radius: 4px;
       padding: 6px 14px;
       font-size: 13px;

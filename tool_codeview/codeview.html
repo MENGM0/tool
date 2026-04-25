@@ -33,7 +33,8 @@
     }
 
     /* ===== 浅色主题变量 ===== */
-    [data-theme="light"] {
+    [data-theme="light"],
+    body.light-theme {
       --bg-primary: #ffffff;
       --bg-secondary: #f3f3f3;
       --bg-tertiary: #e8e8e8;
@@ -300,6 +301,21 @@
 
       .btn-copy {
         margin-left: 0;
+      }
+    }
+
+    @media (max-width: 600px) {
+      #toolbar {
+        flex-wrap: wrap;
+        row-gap: 8px;
+      }
+
+      .toolbar-label {
+        display: none;
+      }
+
+      input[type="range"] {
+        width: 60px;
       }
     }
   </style>
@@ -650,12 +666,8 @@
     function updateUITheme(isDark) {
       const pageThemeLabel = document.getElementById('page-theme-label');
       pageThemeLabel.textContent = isDark ? '深色' : '浅色';
-
-      if (isDark) {
-        document.documentElement.removeAttribute('data-theme');
-      } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
+      // 使用body类切换主题
+      document.body.classList.toggle('light-theme', !isDark);
     }
 
     // ===== Monaco Editor 初始化 =====

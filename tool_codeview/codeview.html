@@ -421,10 +421,98 @@
       }
     });
 
-    // ===== 自定义主题定义（后续任务实现） =====
+    // ===== 自定义主题定义 =====
     function defineCustomThemes() {
-      // TODO: 在后续任务中添加自定义主题
-      // monokai, solarized-dark, one-dark-pro, dracula
+      // Monokai
+      monaco.editor.defineTheme('monokai', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [
+          { token: 'keyword', foreground: 'F92672' },
+          { token: 'keyword.control', foreground: 'F92672' },
+          { token: 'keyword.other', foreground: 'F92672' },
+          { token: 'string', foreground: 'E6DB74' },
+          { token: 'string.quoted', foreground: 'E6DB74' },
+          { token: 'comment', foreground: '75715E', fontStyle: 'italic' },
+          { token: 'function', foreground: 'A6E22E' },
+          { token: 'function.call', foreground: 'A6E22E' },
+          { token: 'number', foreground: 'AE81FF' },
+          { token: 'constant', foreground: 'AE81FF' },
+          { token: 'variable', foreground: 'F8F8F2' },
+          { token: 'type', foreground: '66D9EF' },
+          { token: 'class', foreground: 'A6E22E' },
+        ],
+        colors: {
+          'editor.background': '#272822',
+          'editor.foreground': '#F8F8F2',
+          'editorLineNumber.foreground': '#75715E',
+          'editor.selectionBackground': '#49483E',
+          'editor.lineHighlightBackground': '#3E3D32',
+        }
+      });
+
+      // Solarized Dark
+      monaco.editor.defineTheme('solarized-dark', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [
+          { token: 'keyword', foreground: '859900' },
+          { token: 'string', foreground: '2AA198' },
+          { token: 'comment', foreground: '586E75', fontStyle: 'italic' },
+          { token: 'function', foreground: '268BD2' },
+          { token: 'number', foreground: 'D33682' },
+          { token: 'variable', foreground: '839496' },
+          { token: 'type', foreground: 'B58900' },
+        ],
+        colors: {
+          'editor.background': '#002B36',
+          'editor.foreground': '#839496',
+          'editorLineNumber.foreground': '#586E75',
+          'editor.selectionBackground': '#073642',
+        }
+      });
+
+      // One Dark Pro
+      monaco.editor.defineTheme('one-dark-pro', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [
+          { token: 'keyword', foreground: 'C678DD' },
+          { token: 'string', foreground: '98C379' },
+          { token: 'comment', foreground: '5C6370', fontStyle: 'italic' },
+          { token: 'function', foreground: 'E5C07B' },
+          { token: 'number', foreground: 'D19A66' },
+          { token: 'variable', foreground: 'ABB2BF' },
+          { token: 'type', foreground: 'E5C07B' },
+        ],
+        colors: {
+          'editor.background': '#282C34',
+          'editor.foreground': '#ABB2BF',
+          'editorLineNumber.foreground': '#5C6370',
+          'editor.selectionBackground': '#3E4451',
+        }
+      });
+
+      // Dracula
+      monaco.editor.defineTheme('dracula', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [
+          { token: 'keyword', foreground: 'FF79C6' },
+          { token: 'string', foreground: 'F1FA8C' },
+          { token: 'comment', foreground: '6272A4', fontStyle: 'italic' },
+          { token: 'function', foreground: '50FA7B' },
+          { token: 'number', foreground: 'BD93F9' },
+          { token: 'variable', foreground: 'F8F8F2' },
+          { token: 'type', foreground: '8BE9FD' },
+        ],
+        colors: {
+          'editor.background': '#282A36',
+          'editor.foreground': '#F8F8F2',
+          'editorLineNumber.foreground': '#6272A4',
+          'editor.selectionBackground': '#44475A',
+        }
+      });
     }
 
     // ===== 启发式语言检测 =====
@@ -501,21 +589,50 @@
         editor.updateOptions({ fontSize: size });
         fontSizeValue.textContent = size + 'px';
       });
+
+      // 主题选择下拉
+      const themeSelect = document.getElementById('theme-select');
+      themeSelect.addEventListener('change', function () {
+        monaco.editor.setTheme(this.value);
+        // 更新页面主题开关状态
+        updateToggleState(this.value);
+      });
+
+      // 深色/浅色页面主题开关
+      const pageThemeSwitch = document.getElementById('page-theme-switch');
+      pageThemeSwitch.addEventListener('change', function () {
+        const isDark = this.checked;
+        // 根据开关状态设置编辑器主题
+        const theme = isDark ? 'vs-dark' : 'vs';
+        monaco.editor.setTheme(theme);
+        themeSelect.value = theme;
+        updateUITheme(isDark);
+      });
     }
 
-    // ===== 页面主题切换功能 =====
-    const pageThemeSwitch = document.getElementById('page-theme-switch');
-    const pageThemeLabel = document.getElementById('page-theme-label');
+    // ===== 更新页面主题开关状态 =====
+    function updateToggleState(theme) {
+      const pageThemeSwitch = document.getElementById('page-theme-switch');
+      const pageThemeLabel = document.getElementById('page-theme-label');
+      const isDark = theme.includes('dark') || theme === 'monokai' ||
+                     theme === 'solarized-dark' || theme === 'one-dark-pro' ||
+                     theme === 'dracula';
+      pageThemeSwitch.checked = isDark;
+      pageThemeLabel.textContent = isDark ? '深色' : '浅色';
+      updateUITheme(isDark);
+    }
 
-    pageThemeSwitch.addEventListener('change', function() {
-      if (this.checked) {
+    // ===== 更新UI主题样式 =====
+    function updateUITheme(isDark) {
+      const pageThemeLabel = document.getElementById('page-theme-label');
+      pageThemeLabel.textContent = isDark ? '深色' : '浅色';
+
+      if (isDark) {
         document.documentElement.removeAttribute('data-theme');
-        pageThemeLabel.textContent = '深色';
       } else {
         document.documentElement.setAttribute('data-theme', 'light');
-        pageThemeLabel.textContent = '浅色';
       }
-    });
+    }
 
     // ===== 复制按钮点击事件 =====
     const copyBtn = document.getElementById('copy-btn');

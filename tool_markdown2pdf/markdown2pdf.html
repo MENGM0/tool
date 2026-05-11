@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown 转 PDF</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
@@ -375,11 +376,14 @@
             border-radius: 6px;
             overflow-x: auto;
             margin-bottom: 16px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         .markdown-body pre code {
             background: transparent;
             padding: 0;
+            white-space: pre;
         }
 
         .markdown-body img {
@@ -405,6 +409,15 @@
             padding-left: 16px;
             color: #57606a;
             margin-bottom: 16px;
+            overflow: visible;
+        }
+
+        .markdown-body blockquote p {
+            margin-bottom: 8px;
+        }
+
+        .markdown-body blockquote p:last-child {
+            margin-bottom: 0;
         }
 
         .markdown-body table {
@@ -470,6 +483,14 @@
             <div class="upload-text">拖拽 Markdown 文件到此处</div>
             <div class="upload-hint">或点击选择文件，支持批量选择</div>
             <input type="file" id="fileInput" accept=".md,.markdown" multiple>
+        </div>
+
+        <!-- 图片目录选择 -->
+        <div class="upload-zone" id="imageDirZone" style="margin-top: 20px; padding: 30px 40px;">
+            <div class="upload-icon">🖼️</div>
+            <div class="upload-text">选择图片目录（可选）</div>
+            <div class="upload-hint">用于解析 Markdown 中的本地图片</div>
+            <input type="file" id="imageDirInput" webkitdirectory directory>
         </div>
 
         <!-- 文件列表 -->
@@ -552,12 +573,15 @@
         const state = {
             files: [],
             currentIndex: 0,
-            printMode: false
+            printMode: false,
+            imageDir: null  // 图片目录
         };
 
         // DOM 元素
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('fileInput');
+        const imageDirZone = document.getElementById('imageDirZone');
+        const imageDirInput = document.getElementById('imageDirInput');
         const fileList = document.getElementById('fileList');
         const generateBtn = document.getElementById('generateBtn');
         const clearBtn = document.getElementById('clearBtn');
@@ -611,6 +635,18 @@
             fileInput.value = '';
         });
 
+        // 图片目录选择
+        imageDirZone.addEventListener('click', () => imageDirInput.click());
+
+        imageDirInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                // 获取图片所在目录
+                state.imageDir = files[0].webkitRelativePath.split('/')[0];
+                showToast(`已选择图片目录: ${state.imageDir}`);
+            }
+        });
+
         // 处理文件
         async function handleFiles(fileList) {
             const mdFiles = Array.from(fileList).filter(f =>
@@ -648,7 +684,7 @@
             try {
                 const content = await readFile(fileItem.file);
                 fileItem.content = content;
-                fileItem.html = await parseMarkdown(content, fileItem.file.path || '');
+                fileItem.html = await parseMarkdown(content);
                 fileItem.status = 'ready';
 
                 state.currentIndex = index;
@@ -673,7 +709,7 @@
         }
 
         // 解析 Markdown（处理图片）
-        async function parseMarkdown(content, basePath) {
+        async function parseMarkdown(content) {
             const html = marked.parse(content);
 
             // 处理本地图片
@@ -685,11 +721,14 @@
                 const src = img.getAttribute('src');
                 if (src && !src.startsWith('http') && !src.startsWith('data:')) {
                     try {
-                        // 尝试从原始文件目录加载图片
-                        const imgPath = basePath ?
-                            basePath.substring(0, basePath.lastIndexOf('/')) + '/' + src : src;
-                        const base64 = await imageToBase64(imgPath);
-                        img.setAttribute('src', base64);
+                        // 尝试从用户选择的图片目录中加载
+                        if (state.imageDir) {
+                            const matchedFile = await findImageInDirectory(src);
+                            if (matchedFile) {
+                                const base64 = await fileToBase64(matchedFile);
+                                img.setAttribute('src', base64);
+                            }
+                        }
                     } catch (e) {
                         console.warn('无法加载图片:', src);
                     }
@@ -699,21 +738,27 @@
             return tempDiv.innerHTML;
         }
 
-        // 图片转 Base64
-        async function imageToBase64(path) {
+        // 从目录中查找图片文件
+        async function findImageInDirectory(src) {
+            const files = imageDirInput.files;
+            const srcName = src.split('/').pop();
+
+            for (const file of files) {
+                const fileName = file.name.split('/').pop();
+                if (fileName === srcName || file.webkitRelativePath.endsWith(src)) {
+                    return file;
+                }
+            }
+            return null;
+        }
+
+        // 文件转 Base64
+        function fileToBase64(file) {
             return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    resolve(canvas.toDataURL('image/png'));
-                };
-                img.onerror = reject;
-                img.src = path;
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
             });
         }
 
@@ -799,6 +844,21 @@
         generateBtn.addEventListener('click', async () => {
             if (state.files.length === 0) return;
 
+            generateBtn.disabled = true;
+
+            // 确保在预览视图下，避免内容被隐藏
+            previewTabs.forEach(t => t.classList.remove('active'));
+            document.querySelector('[data-view="preview"]').classList.add('active');
+            markdownBody.classList.remove('hide');
+
+            const paperSize = paperSizeSelect.value;
+            const orientation = orientationSelect.value;
+            const marginTop = marginTopInput.value;
+            const marginBottom = marginBottomInput.value;
+            const marginLeft = marginLeftInput.value;
+            const marginRight = marginRightInput.value;
+            const fontSize = fontSizeInput.value;
+
             for (let i = 0; i < state.files.length; i++) {
                 await loadFile(i);
                 const fileItem = state.files[i];
@@ -807,28 +867,85 @@
                     // 切换到当前文件预览
                     state.currentIndex = i;
                     showPreview(fileItem);
-                    previewTitle.textContent = `正在打印：${fileItem.name} (${i + 1}/${state.files.length})`;
+                    previewTitle.textContent = `正在生成：${fileItem.name} (${i + 1}/${state.files.length})`;
 
-                    // 触发打印
-                    await new Promise(resolve => {
-                        window.print();
-                        setTimeout(resolve, 500);
+                    // 等待DOM更新
+                    await new Promise(resolve => setTimeout(resolve, 100));
+
+                    // 使用 html2pdf 生成 PDF
+                    const pdfName = fileItem.name.replace(/\.(md|markdown)$/, '') + '.pdf';
+
+                    // 设置字体大小
+                    markdownBody.style.fontSize = fontSize + 'px';
+
+                    // 等待DOM渲染
+                    await new Promise(resolve => setTimeout(resolve, 200));
+
+                    const opt = {
+                        margin: [marginTop, marginRight, marginBottom, marginLeft],
+                        filename: pdfName,
+                        image: { type: 'png', quality: 1 },
+                        html2canvas: {
+                            scale: 2,
+                            useCORS: true,
+                            logging: false,
+                            allowTaint: true
+                        },
+                        jsPDF: {
+                            unit: 'mm',
+                            format: paperSize,
+                            orientation: orientation
+                        },
+                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                    };
+
+                    // 使用 Promise 包装 html2pdf，添加超时保护
+                    await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => {
+                            console.warn('PDF生成超时，继续下一个');
+                            resolve();
+                        }, 30000); // 30秒超时
+
+                        try {
+                            const worker = html2pdf().set(opt).from(markdownBody);
+                            worker.save().then(() => {
+                                clearTimeout(timeout);
+                                resolve();
+                            }).catch(err => {
+                                clearTimeout(timeout);
+                                console.error('PDF生成失败:', err);
+                                resolve(); // 即使失败也继续，避免卡住
+                            });
+                        } catch (e) {
+                            clearTimeout(timeout);
+                            console.error('PDF生成异常:', e);
+                            resolve();
+                        }
                     });
+
+                    // 等待文件保存
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 }
             }
 
+            // 恢复字体大小设置
+            applySettings();
+
             previewTitle.textContent = `预览：${state.files[state.currentIndex]?.name || ''}`;
-            showToast('所有文件已处理完成！');
+            generateBtn.disabled = false;
+            showToast('所有文件已生成完成！');
         });
 
         // 清空列表
         clearBtn.addEventListener('click', () => {
             state.files = [];
             state.currentIndex = 0;
+            state.imageDir = null;
             fileList.classList.remove('active');
             previewContainer.classList.remove('active');
             settingsBar.style.display = 'none';
             markdownBody.innerHTML = '';
+            imageDirInput.value = '';
             updateButtons();
         });
 

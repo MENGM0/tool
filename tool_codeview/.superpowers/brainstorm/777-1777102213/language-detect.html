@@ -1,0 +1,78 @@
+<h2>自动语言识别</h2>
+<p class="subtitle">Monaco Editor 如何自动识别代码语言</p>
+
+<div class="options">
+  <div class="option" data-choice="auto-detect" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>自动检测 (推荐)</h3>
+      <p>Monaco内置语言检测，粘贴代码后自动识别</p>
+      <div class="mockup">
+        <div style="background:#2d2d2d;padding:12px;border-radius:4px;">
+          <div style="color:#888;font-size:11px;margin-bottom:8px;">检测到语言：JavaScript ✓</div>
+          <div style="background:#1e1e1e;padding:8px;border-radius:4px;font-family:monospace;font-size:12px;color:#d4d4d4;">
+            <span style="color:#569cd6;">function</span> <span style="color:#dcdcaa;">hello</span>() { ... }
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>优点</h4><ul><li>无需手动选择</li><li>体验流畅</li><li>支持几十种语言</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="manual-select" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>手动选择语言</h3>
+      <p>用户通过下拉菜单主动选择语言</p>
+      <div class="mockup">
+        <div style="background:#2d2d2d;padding:12px;border-radius:4px;">
+          <select style="background:#1e1e1e;color:#fff;padding:6px 12px;border-radius:4px;border:none;margin-bottom:8px;">
+            <option>JavaScript</option>
+            <option>Python</option>
+            <option>Java</option>
+            <option>C++</option>
+            <option>HTML</option>
+          </select>
+          <div style="background:#1e1e1e;padding:8px;border-radius:4px;font-family:monospace;font-size:12px;color:#d4d4d4;">
+            <span style="color:#569cd6;">function</span> <span style="color:#dcdcaa;">hello</span>() { ... }
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>优点</h4><ul><li>精确控制</li><li>可选更多语言</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>需要额外操作</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="both" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>自动检测 + 可手动覆盖</h3>
+      <p>自动检测后，用户仍可手动切换语言</p>
+      <div class="mockup">
+        <div style="background:#2d2d2d;padding:12px;border-radius:4px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <span style="color:#888;font-size:11px;">检测: JavaScript</span>
+            <select style="background:#1e1e1e;color:#569cd6;padding:4px 8px;border-radius:4px;border:none;font-size:12px;">
+              <option selected>JavaScript ✓</option>
+              <option>TypeScript</option>
+              <option>其他...</option>
+            </select>
+          </div>
+          <div style="background:#1e1e1e;padding:8px;border-radius:4px;font-family:monospace;font-size:12px;color:#d4d4d4;">
+            <span style="color:#569cd6;">function</span> <span style="color:#dcdcaa;">hello</span>() { ... }
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>优点</h4><ul><li>自动便捷</li><li>保留控制权</li><li>最佳体验</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>UI稍复杂</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top:24px;color:#888;font-size:13px;">推荐选择C，既自动识别又可手动纠正，体验最佳。</p>

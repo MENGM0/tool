@@ -1,0 +1,77 @@
+<h2>代码查看器 - 选择整体布局</h2>
+<p class="subtitle">请选择您喜欢的界面布局风格</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>经典单页面</h3>
+      <p>顶部工具栏 + 中央代码区域，简洁直接</p>
+      <div class="mockup">
+        <div class="mockup-header" style="padding:8px;background:#2d2d2d;color:#fff;display:flex;gap:10px;align-items:center;">
+          <span style="padding:4px 8px;background:#555;border-radius:4px;">语言: JavaScript ▼</span>
+          <span style="padding:4px 8px;background:#555;border-radius:4px;">深色</span>
+          <span style="padding:4px 8px;background:#555;border-radius:4px;">行号 ✓</span>
+        </div>
+        <div class="mockup-body" style="background:#1e1e1e;padding:16px;font-family:monospace;font-size:12px;color:#d4d4d4;">
+          <div style="color:#858585;display:inline-block;width:30px;">1</div> <span style="color:#569cd6;">function</span> <span style="color:#dcdcaa;">hello</span>() {<br>
+          <div style="color:#858585;display:inline-block;width:30px;">2</div>   <span style="color:#569cd6;">return</span> <span style="color:#ce9178;">"Hello World"</span>;<br>
+          <div style="color:#858585;display:inline-block;width:30px;">3</div> }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>双栏布局</h3>
+      <p>左侧语言/设置面板 + 右侧代码区，功能分离清晰</p>
+      <div class="mockup">
+        <div style="display:flex;height:200px;">
+          <div class="mock-sidebar" style="width:140px;background:#252526;padding:12px;">
+            <div style="color:#ccc;font-size:11px;margin-bottom:8px;">语言选择</div>
+            <div style="color:#569cd6;padding:4px;">JavaScript</div>
+            <div style="color:#888;padding:4px;">Python</div>
+            <div style="color:#888;padding:4px;">Java</div>
+            <hr style="border-color:#444;margin:12px 0;">
+            <div style="color:#ccc;font-size:11px;margin-bottom:8px;">设置</div>
+            <div style="color:#888;padding:4px;">深色模式 ✓</div>
+            <div style="color:#888;padding:4px;">显示行号 ✓</div>
+          </div>
+          <div class="mock-content" style="flex:1;background:#1e1e1e;padding:16px;font-family:monospace;font-size:12px;color:#d4d4d4;">
+            <div style="color:#858585;display:inline-block;width:30px;">1</div> <span style="color:#569cd6;">function</span> <span style="color:#dcdcaa;">hello</span>() {<br>
+            <div style="color:#858585;display:inline-block;width:30px;">2</div>   <span style="color:#569cd6;">return</span> <span style="color:#ce9178;">"Hello World"</span>;
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>卡片式布局</h3>
+      <p>代码粘贴区 + 代码展示区分离，更直观的操作流程</p>
+      <div class="mockup">
+        <div style="display:flex;gap:16px;">
+          <div style="flex:1;background:#2d2d2d;border-radius:8px;padding:12px;">
+            <div style="color:#888;font-size:11px;margin-bottom:8px;">粘贴代码</div>
+            <div style="background:#1e1e1e;border-radius:4px;padding:8px;height:100px;color:#666;font-family:monospace;">
+              在此处粘贴代码...
+            </div>
+            <button class="mock-button" style="margin-top:8px;width:100%;">查看代码</button>
+          </div>
+          <div style="flex:1;background:#2d2d2d;border-radius:8px;padding:12px;">
+            <div style="color:#888;font-size:11px;margin-bottom:8px;">代码展示</div>
+            <div style="background:#1e1e1e;border-radius:4px;padding:8px;height:100px;font-family:monospace;font-size:12px;color:#d4d4d4;">
+              <span style="color:#569cd6;">function</span> hello()...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top:24px;color:#888;font-size:13px;">点击选择一个布局方案，然后告诉我您的想法。</p>

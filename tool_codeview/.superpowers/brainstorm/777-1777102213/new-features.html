@@ -1,0 +1,124 @@
+<h2>新增功能：一键复制 + 高亮配色</h2>
+<p class="subtitle">请选择功能样式</p>
+
+<div class="section">
+  <h3 style="color:#fff;margin-bottom:16px;">1. 一键复制按钮位置</h3>
+  <div class="options">
+    <div class="option" data-choice="copy-top" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <p>工具栏右侧</p>
+        <div class="mockup">
+          <div style="background:#2d2d2d;padding:8px;display:flex;gap:8px;align-items:center;">
+            <span style="background:#555;padding:4px 8px;border-radius:4px;color:#888;">语言: JS</span>
+            <span style="background:#555;padding:4px 8px;border-radius:4px;color:#888;">字体▼</span>
+            <span style="background:#555;padding:4px 8px;border-radius:4px;color:#888;">14px</span>
+            <span style="margin-left:auto;background:#007acc;padding:4px 8px;border-radius:4px;color:#fff;">📋 复制</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option" data-choice="copy-float" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <p>悬浮在代码区右上角</p>
+        <div class="mockup">
+          <div style="background:#1e1e1e;padding:16px;position:relative;min-height:80px;border-radius:4px;">
+            <button style="position:absolute;top:8px;right:8px;background:#007acc;padding:4px 8px;border-radius:4px;color:#fff;font-size:12px;">📋 复制</button>
+            <div style="font-family:monospace;color:#d4d4d4;">function hello() {...}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option" data-choice="copy-hover" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <p>鼠标悬停时显示</p>
+        <div class="mockup">
+          <div style="background:#1e1e1e;padding:16px;position:relative;min-height:80px;border-radius:4px;">
+            <div style="position:absolute;top:8px;right:8px;background:#333;padding:4px 8px;border-radius:4px;color:#888;font-size:12px;opacity:0.7;">📋 复制 (悬停显示)</div>
+            <div style="font-family:monospace;color:#d4d4d4;">function hello() {...}</div>
+          </div>
+          <p style="color:#888;font-size:11px;margin-top:4px;">鼠标移入代码区时按钮出现</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px;">
+  <h3 style="color:#fff;margin-bottom:16px;">2. 高亮配色调整</h3>
+  <div class="options">
+    <div class="option" data-choice="theme-more" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <p>扩展主题选择</p>
+        <div class="mockup">
+          <div style="background:#2d2d2d;padding:8px;border-radius:4px;">
+            <select style="background:#1e1e1e;color:#fff;padding:6px 12px;border-radius:4px;border:none;">
+              <option>VS Dark (默认深色)</option>
+              <option>VS Light (默认浅色)</option>
+              <option>Monokai</option>
+              <option>Solarized Dark</option>
+              <option>One Dark Pro</option>
+              <option>Dracula</option>
+            </select>
+          </div>
+        </div>
+        <p style="color:#888;font-size:11px;margin-top:8px;">提供多种预设配色主题</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="color-custom" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <p>自定义颜色调整</p>
+        <div class="mockup">
+          <div style="background:#2d2d2d;padding:12px;border-radius:4px;">
+            <div style="display:flex;gap:16px;align-items:center;">
+              <div>
+                <span style="color:#888;font-size:10px;">关键字</span><br>
+                <div style="background:#569cd6;width:24px;height:24px;border-radius:4px;margin-top:4px;cursor:pointer;"></div>
+              </div>
+              <div>
+                <span style="color:#888;font-size:10px;">字符串</span><br>
+                <div style="background:#ce9178;width:24px;height:24px;border-radius:4px;margin-top:4px;cursor:pointer;"></div>
+              </div>
+              <div>
+                <span style="color:#888;font-size:10px;">函数</span><br>
+                <div style="background:#dcdcaa;width:24px;height:24px;border-radius:4px;margin-top:4px;cursor:pointer;"></div>
+              </div>
+              <div>
+                <span style="color:#888;font-size:10px;">注释</span><br>
+                <div style="background:#6a9955;width:24px;height:24px;border-radius:4px;margin-top:4px;cursor:pointer;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p style="color:#888;font-size:11px;margin-top:8px;">点击颜色块可自定义各种语法元素颜色</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="color-preset" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <p>预设主题 + 自定义结合</p>
+        <div class="mockup">
+          <div style="background:#2d2d2d;padding:12px;border-radius:4px;">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+              <select style="background:#1e1e1e;color:#fff;padding:4px 8px;border-radius:4px;border:none;">
+                <option>Monokai</option>
+              </select>
+              <button style="background:#555;color:#fff;padding:4px 8px;border-radius:4px;border:none;font-size:12px;">自定义颜色</button>
+            </div>
+          </div>
+        </div>
+        <p style="color:#888;font-size:11px;margin-top:8px;">选择预设主题，也可微调个别颜色</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top:24px;color:#888;font-size:13px;">请为两个功能分别选择方案。</p>

@@ -1,0 +1,62 @@
+<h2>代码折叠功能确认</h2>
+<p class="subtitle">Monaco Editor 内置代码折叠，请确认具体需求</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="fold-functions" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>折叠函数/方法</h3>
+      <p>折叠整个函数体，只显示函数签名</p>
+      <div class="mockup">
+        <div style="background:#1e1e1e;padding:12px;font-family:monospace;font-size:12px;color:#d4d4d4;line-height:1.6;">
+          <span style="color:#858585;">1</span> <span style="color:#569cd6;">function</span> <span style="color:#dcdcaa;">calculate</span>(a, b) { <span style="color:#888;">···</span><br>
+          <span style="color:#858585;">5</span> }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="fold-classes" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>折叠类/结构体</h3>
+      <p>折叠整个类定义，包括所有方法</p>
+      <div class="mockup">
+        <div style="background:#1e1e1e;padding:12px;font-family:monospace;font-size:12px;color:#d4d4d4;line-height:1.6;">
+          <span style="color:#858585;">1</span> <span style="color:#569cd6;">class</span> <span style="color:#4ec9b0;">UserService</span> { <span style="color:#888;">···20行···</span><br>
+          <span style="color:#858585;">25</span> }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="fold-blocks" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>折叠代码块</h3>
+      <p>折叠if/else、for、while等代码块</p>
+      <div class="mockup">
+        <div style="background:#1e1e1e;padding:12px;font-family:monospace;font-size:12px;color:#d4d4d4;line-height:1.6;">
+          <span style="color:#858585;">10</span> <span style="color:#c586c0;">if</span> (condition) { <span style="color:#888;">···</span><br>
+          <span style="color:#858585;">15</span> }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="fold-imports" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>折叠导入区域</h3>
+      <p>折叠import/require语句块</p>
+      <div class="mockup">
+        <div style="background:#1e1e1e;padding:12px;font-family:monospace;font-size:12px;color:#d4d4d4;line-height:1.6;">
+          <span style="color:#858585;">1</span> <span style="color:#c586c0;">import</span> { useState } <span style="color:#c586c0;">from</span> <span style="color:#ce9178;">'react'</span>; <span style="color:#888;">···5个导入···</span><br>
+          <span style="color:#858585;">8</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top:24px;color:#888;font-size:13px;">可多选。Monaco Editor默认支持所有这些折叠，您只需确认需要哪些功能。</p>

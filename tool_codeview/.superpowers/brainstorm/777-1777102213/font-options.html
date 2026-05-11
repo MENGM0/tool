@@ -1,0 +1,76 @@
+<h2>字体样式和大小调整</h2>
+<p class="subtitle">请选择您喜欢的调整方式</p>
+
+<div class="options">
+  <div class="option" data-choice="dropdown" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>下拉选择 + 滑动调节</h3>
+      <p>字体下拉选择，字号滑动调节</p>
+      <div class="mockup">
+        <div style="background:#2d2d2d;padding:12px;border-radius:4px;display:flex;gap:16px;align-items:center;">
+          <div>
+            <span style="color:#888;font-size:11px;">字体</span><br>
+            <select style="background:#1e1e1e;color:#fff;padding:6px 12px;border-radius:4px;border:none;margin-top:4px;">
+              <option>Consolas</option>
+              <option>Monaco</option>
+              <option>Source Code Pro</option>
+              <option>Fira Code</option>
+              <option>JetBrains Mono</option>
+            </select>
+          </div>
+          <div>
+            <span style="color:#888;font-size:11px;">字号</span><br>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+              <span style="color:#888;font-size:12px;">12</span>
+              <input type="range" min="10" max="24" value="14" style="width:80px;">
+              <span style="color:#888;font-size:12px;">24</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="buttons" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>预设按钮</h3>
+      <p>点击预设按钮快速调整</p>
+      <div class="mockup">
+        <div style="background:#2d2d2d;padding:12px;border-radius:4px;display:flex;gap:8px;align-items:center;">
+          <span style="color:#888;font-size:11px;">字体:</span>
+          <button style="background:#555;color:#fff;padding:4px 8px;border-radius:4px;border:none;">Consolas</button>
+          <button style="background:#333;color:#888;padding:4px 8px;border-radius:4px;border:none;">Fira Code</button>
+          <button style="background:#333;color:#888;padding:4px 8px;border-radius:4px;border:none;">JetBrains</button>
+          <span style="color:#888;font-size:11px;margin-left:16px;">字号:</span>
+          <button style="background:#333;color:#888;padding:4px 8px;border-radius:4px;border:none;">小</button>
+          <button style="background:#555;color:#fff;padding:4px 8px;border-radius:4px;border:none;">中</button>
+          <button style="background:#333;color:#888;padding:4px 8px;border-radius:4px;border:none;">大</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="compact" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>紧凑下拉</h3>
+      <p>一个下拉菜单包含字体和字号预设</p>
+      <div class="mockup">
+        <div style="background:#2d2d2d;padding:12px;border-radius:4px;">
+          <select style="background:#1e1e1e;color:#fff;padding:6px 12px;border-radius:4px;border:none;">
+            <option>Consolas 14px</option>
+            <option>Consolas 16px</option>
+            <option>Fira Code 14px</option>
+            <option>JetBrains Mono 14px</option>
+            <option>自定义...</option>
+          </select>
+        </div>
+      </div>
+      <p style="color:#888;font-size:12px;margin-top:8px;">简洁，适合快速切换常用组合</p>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top:24px;color:#888;font-size:13px;">推荐选择A，灵活度高，字体和字号可独立调节。</p>

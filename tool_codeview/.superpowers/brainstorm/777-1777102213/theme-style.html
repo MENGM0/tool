@@ -1,0 +1,70 @@
+<h2>深色/浅色主题样式</h2>
+<p class="subtitle">请选择您喜欢的主题风格</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">深色主题 (vs-dark)</div>
+    <div class="mockup-body" style="background:#1e1e1e;padding:12px;font-family:monospace;font-size:12px;color:#d4d4d4;line-height:1.6;">
+      <div style="color:#858585;display:inline-block;width:30px;">1</div> <span style="color:#569cd6;">function</span> <span style="color:#dcdcaa;">hello</span>() {<br>
+      <div style="color:#858585;display:inline-block;width:30px;">2</div>   <span style="color:#569cd6;">const</span> msg = <span style="color:#ce9178;">"Hello"</span>;<br>
+      <div style="color:#858585;display:inline-block;width:30px;">3</div>   <span style="color:#c586c0;">return</span> msg;<br>
+      <div style="color:#858585;display:inline-block;width:30px;">4</div> }
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">浅色主题</div>
+    <div class="mockup-body" style="background:#ffffff;padding:12px;font-family:monospace;font-size:12px;color:#333333;line-height:1.6;border:1px solid #ddd;">
+      <div style="color:#999;display:inline-block;width:30px;">1</div> <span style="color:#0000ff;">function</span> <span style="color:#795e26;">hello</span>() {<br>
+      <div style="color:#999;display:inline-block;width:30px;">2</div>   <span style="color:#0000ff;">const</span> msg = <span style="color:#a31515;">"Hello"</span>;<br>
+      <div style="color:#999;display:inline-block;width:30px;">3</div>   <span style="color:#af00db;">return</span> msg;<br>
+      <div style="color:#999;display:inline-block;width:30px;">4</div> }
+    </div>
+  </div>
+</div>
+
+<div class="options" style="margin-top:24px;">
+  <div class="option" data-choice="toggle-button" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>切换按钮</h3>
+      <p>工具栏中的简单按钮切换</p>
+      <div style="background:#2d2d2d;padding:8px;border-radius:4px;display:inline-flex;gap:8px;">
+        <span style="background:#555;padding:4px 12px;border-radius:4px;color:#fff;">🌙 深色</span>
+        <span style="background:#333;padding:4px 12px;border-radius:4px;color:#888;">☀️ 浅色</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="toggle-switch" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>滑动开关</h3>
+      <p>现代感的滑动切换组件</p>
+      <div style="background:#2d2d2d;padding:8px;border-radius:4px;display:inline-flex;align-items:center;gap:8px;">
+        <span style="color:#888;">☀️</span>
+        <div style="width:48px;height:24px;background:#555;border-radius:12px;position:relative;">
+          <div style="width:20px;height:20px;background:#1e1e1e;border-radius:50%;position:absolute;right:2px;top:2px;"></div>
+        </div>
+        <span style="color:#fff;">🌙</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="dropdown" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>下拉选择</h3>
+      <p>提供多种主题选项的下拉菜单</p>
+      <div style="background:#2d2d2d;padding:8px;border-radius:4px;display:inline-block;">
+        <select style="background:#1e1e1e;color:#fff;padding:4px 8px;border-radius:4px;border:none;">
+          <option>VS Dark</option>
+          <option>VS Light</option>
+          <option>High Contrast</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top:24px;color:#888;font-size:13px;">Monaco Editor 内置 vs-dark 和 vs 两种主题，可一键切换。</p>

@@ -1,0 +1,42 @@
+<h2>代码高亮引擎选择</h2>
+<p class="subtitle">决定代码语法高亮的实现方式</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Prism.js (推荐)</h3>
+      <p>轻量、快速、支持200+语言、主题丰富、CDN可用</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>文件小(~2KB核心+语言插件)</li><li>自动语言检测插件</li><li>多种主题可选</li><li>成熟稳定</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>行号需要额外插件</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Highlight.js</h3>
+      <p>自动语言识别强、支持190+语言、一行代码集成</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>自动语言检测内置</li><li>集成简单</li><li>支持大量语言</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>文件稍大(~50KB)</li><li>主题较少</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Monaco Editor</h3>
+      <p>VS Code内核、完整编辑器功能、智能语法分析</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>完整的编辑器体验</li><li>智能代码折叠</li><li>语法错误提示</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>文件大(~500KB)</li><li>复杂度高</li><li>可能过于强大</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top:24px;color:#888;font-size:13px;">推荐选择 Prism.js，轻量且功能足够，配合插件可实现行号和代码折叠。</p>
